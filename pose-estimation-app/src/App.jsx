@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Camera, Home, TrendingUp, User, Play, Settings } from 'lucide-react';
 import Webcam from 'react-webcam';
 import { PoseLandmarker, FilesetResolver, DrawingUtils } from '@mediapipe/tasks-vision';
 
 const YogaPoseTracker = () => {
   const [currentPage, setCurrentPage] = useState('home');
+  const [cam, setCam] = useState(false);
+  const webcamRef = useRef(null);
 
   const poses = [
     { name: 'Tree Pose', duration: '30s', difficulty: 'Beginner' },
@@ -14,6 +16,11 @@ const YogaPoseTracker = () => {
     { name: 'Child\'s Pose', duration: '90s', difficulty: 'Beginner' },
     { name: 'Cobra Pose', duration: '30s', difficulty: 'Beginner' },
   ];
+
+  const onHomeClick = () => {
+    setCurrentPage('home');
+    setCam(false);
+  }
 
   const HomePage = () => (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 p-8">
@@ -101,7 +108,7 @@ const YogaPoseTracker = () => {
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900">
       <header className="bg-black bg-opacity-30 backdrop-blur-sm p-4 flex items-center justify-between border-b border-white border-opacity-10">
         <button
-          onClick={() => setCurrentPage('home')}
+          onClick={() => onHomeClick()}
           className="flex items-center gap-2 text-white hover:text-purple-300 transition-colors"
         >
           <Home className="w-5 h-5" />
@@ -116,17 +123,28 @@ const YogaPoseTracker = () => {
       <div className="flex-1 flex flex-col items-center justify-center p-8">
         <div className="w-full max-w-4xl bg-black bg-opacity-40 backdrop-blur-md rounded-3xl overflow-hidden shadow-2xl border border-white border-opacity-20">
           <div className="aspect-video bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center relative">
-      {/*
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Camera className="w-24 h-24 text-white opacity-20" />
-            </div>
-        */}
+            {cam ? 
+              <Webcam
+                className="absolute inset-0 w-full h-full object-cover"
+                ref={webcamRef}
+                mirrored={true}
+                videoConstraints={{
+                  facingMode: "user",
+                  width: 1280,
+                  height: 720
+                }}
+              />
+            :
+              <div className="absolute inset-0 flex items-center justify-center" onClick={() => setCam(true)}>
+                <Camera className="w-24 h-24 text-white opacity-20" />
+              </div>
+            }
             <div className="relative z-10 text-center">
       {/*
               <div className="w-32 h-32 border-4 border-purple-500 rounded-full animate-pulse mb-4 mx-auto" />
-        */}
               <p className="text-white text-lg font-medium">Camera feed will appear here</p>
               <p className="text-gray-400 text-sm mt-2">Pose detection overlay will be rendered on video</p>
+        */}
             </div>
           </div>
 
