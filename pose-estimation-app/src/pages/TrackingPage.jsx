@@ -19,7 +19,7 @@ const TrackingPage = ({ onHomeClick }) => {
                     webcamRef={webcamRef}
                     onToggleCam={handleToggleCam}
                 />
-                <FeedbackPanel />
+                {/* <FeedbackPanel /> */}
             </div>
         </div>
     );
