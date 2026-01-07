@@ -3,7 +3,6 @@ import mediapipe as mp
 import numpy as np
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
-import math # Added for standard math functions if needed, though numpy covers most
 
 CAMERA = 1 # [0 (external webcam), 1 (default webcam)]
 
