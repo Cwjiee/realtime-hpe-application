@@ -3,6 +3,7 @@ import { Camera } from 'lucide-react';
 import Webcam from 'react-webcam';
 import { initializePoseLandmarker, detectPose, drawLandmarks } from '../utils/visionTaskConfig';
 import { getPose } from '../utils/poseClassification';
+import { Switch } from "@/components/ui/switch"
 
 const CameraView = ({ cam, webcamRef, onToggleCam }) => {
     const canvasRef = useRef(null);
@@ -132,6 +133,12 @@ const CameraView = ({ cam, webcamRef, onToggleCam }) => {
                         <div className="text-black text-sm mb-1">Status</div>
                         <div className="text-gray-800 text-xl font-bold">
                             {isLoading ? 'Loading model...' : poseLandmarker ? 'Ready' : 'Not initialized'}
+                        </div>
+                    </div>
+                    <div className="bg-white bg-opacity-10 rounded-xl p-4 backdrop-blur-sm">
+                        <div className="text-black text-sm mb-1">Visual Guidance</div>
+                        <div className="text-black-200 text-xl font-bold">
+                          <Switch />
                         </div>
                     </div>
                 </div>
