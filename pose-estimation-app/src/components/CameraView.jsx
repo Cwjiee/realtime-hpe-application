@@ -5,6 +5,24 @@ import { initializePoseLandmarker, detectPose, drawLandmarks } from '../utils/vi
 import { getPose } from '../utils/poseClassification';
 import { Switch } from "@/components/ui/switch"
 
+// Import yoga pose outline images
+import mountainPose from '../assets/mountain.png';
+import plankPose from '../assets/plank.jpg';
+import treePose from '../assets/tree.jpg';
+import trianglePose from '../assets/triangle.jpg';
+import warrior1Pose from '../assets/warrior1.png';
+import warrior2Pose from '../assets/warrior2.png';
+
+// Pose options for dropdown
+const poseOptions = [
+    { value: 'mountain', label: 'Mountain Pose', image: mountainPose },
+    { value: 'plank', label: 'Plank Pose', image: plankPose },
+    { value: 'tree', label: 'Tree Pose', image: treePose },
+    { value: 'triangle', label: 'Triangle Pose', image: trianglePose },
+    { value: 'warrior1', label: 'Warrior I Pose', image: warrior1Pose },
+    { value: 'warrior2', label: 'Warrior II Pose', image: warrior2Pose },
+];
+
 const CameraView = ({ cam, webcamRef, onToggleCam }) => {
     const canvasRef = useRef(null);
     const [poseLandmarker, setPoseLandmarker] = useState(null);
@@ -12,6 +30,8 @@ const CameraView = ({ cam, webcamRef, onToggleCam }) => {
     const animationFrameRef = useRef(null);
     const lastVideoTimeRef = useRef(-1);
     const [pose, setPose] = useState('unrecognized');
+    const [visualGuidanceEnabled, setVisualGuidanceEnabled] = useState(false);
+    const [selectedPose, setSelectedPose] = useState('mountain');
 
     // Initialize pose landmarker when component mounts
     useEffect(() => {
@@ -114,6 +134,15 @@ const CameraView = ({ cam, webcamRef, onToggleCam }) => {
                             className="absolute inset-0 w-full h-full object-cover pointer-events-none"
                             style={{ transform: 'scaleX(-1)' }}
                         />
+                        {/* Visual Guidance Overlay */}
+                        {visualGuidanceEnabled && (
+                            <img
+                                src={poseOptions.find(p => p.value === selectedPose)?.image}
+                                alt={`${selectedPose} pose guide`}
+                                className="absolute inset-0 w-full h-full object-contain pointer-events-none opacity-60"
+                                style={{ transform: 'scaleX(-1)' }}
+                            />
+                        )}
                     </>
                 ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
@@ -136,9 +165,27 @@ const CameraView = ({ cam, webcamRef, onToggleCam }) => {
                         </div>
                     </div>
                     <div className="bg-white bg-opacity-10 rounded-xl p-4 backdrop-blur-sm">
+                        <div className="text-black text-sm mb-2">Target Pose</div>
+                        <select
+                            value={selectedPose}
+                            onChange={(e) => setSelectedPose(e.target.value)}
+                            className="w-full bg-white bg-opacity-20 text-gray-900 font-semibold rounded-lg px-3 py-2 mb-3 border border-white border-opacity-30 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
+                        >
+                            {poseOptions.map((option) => (
+                                <option key={option.value} value={option.value} className="bg-gray-800 text-white">
+                                    {option.label}
+                                </option>
+                            ))}
+                        </select>
                         <div className="text-black text-sm mb-1">Visual Guidance</div>
-                        <div className="text-black-200 text-xl font-bold">
-                          <Switch />
+                        <div className="flex items-center gap-3">
+                            <Switch
+                                checked={visualGuidanceEnabled}
+                                onCheckedChange={setVisualGuidanceEnabled}
+                            />
+                            <span className="text-gray-800 text-sm">
+                                {visualGuidanceEnabled ? 'On' : 'Off'}
+                            </span>
                         </div>
                     </div>
                 </div>
