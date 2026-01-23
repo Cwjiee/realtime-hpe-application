@@ -1,0 +1,1 @@
+cd pose-estimation-app && npx lint-staged
