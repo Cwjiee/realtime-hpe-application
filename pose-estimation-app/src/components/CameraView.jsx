@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Camera } from 'lucide-react';
 import Webcam from 'react-webcam';
 import { initializePoseLandmarker, detectPose, drawLandmarks } from '../utils/visionTaskConfig';
-import { getPose } from '../utils/poseClassification';
+import { classifyPoseBySimilarity, calculateMatchAgainstTarget } from '../utils/poseMatching';
 import { Switch } from "@/components/ui/switch"
 
 // Import yoga pose outline images
@@ -30,6 +30,7 @@ const CameraView = ({ cam, webcamRef, onToggleCam }) => {
     const animationFrameRef = useRef(null);
     const lastVideoTimeRef = useRef(-1);
     const [pose, setPose] = useState('unrecognized');
+    const [matchScore, setMatchScore] = useState(0);
     const [visualGuidanceEnabled, setVisualGuidanceEnabled] = useState(false);
     const [selectedPose, setSelectedPose] = useState('mountain');
 
@@ -86,14 +87,21 @@ const CameraView = ({ cam, webcamRef, onToggleCam }) => {
                 drawLandmarks(ctx, results, canvas);
 
                 if (results.landmarks && results.landmarks.length > 0) {
-                    const detectedPose = getPose(results.landmarks[0]);
-                    setPose(detectedPose);
+                    const userLandmarks = results.landmarks[0];
+
+                    // Classify pose by similarity to reference poses
+                    const result = classifyPoseBySimilarity(userLandmarks);
+                    setPose(result.label);
+
+                    // Calculate match against selected target pose
+                    const targetMatch = calculateMatchAgainstTarget(userLandmarks, selectedPose);
+                    setMatchScore(targetMatch);
                 }
             }
         }
 
         animationFrameRef.current = requestAnimationFrame(renderLoop);
-    }, [cam, poseLandmarker, webcamRef]);
+    }, [cam, poseLandmarker, webcamRef, selectedPose]);
 
     // Start/stop render loop based on cam state
     useEffect(() => {
@@ -157,6 +165,12 @@ const CameraView = ({ cam, webcamRef, onToggleCam }) => {
                     <div className="bg-white bg-opacity-10 rounded-xl p-4 backdrop-blur-sm">
                         <div className="text-black text-sm mb-1">Current Pose</div>
                         <div className="text-gray-800 text-xl font-bold">{pose}</div>
+                    </div>
+                    <div className="bg-white bg-opacity-10 rounded-xl p-4 backdrop-blur-sm">
+                        <div className="text-black text-sm mb-1">Match Score</div>
+                        <div className={`text-2xl font-bold ${matchScore >= 80 ? 'text-green-600' : matchScore >= 50 ? 'text-yellow-600' : 'text-gray-600'}`}>
+                            {matchScore}%
+                        </div>
                     </div>
                     <div className="bg-white bg-opacity-10 rounded-xl p-4 backdrop-blur-sm">
                         <div className="text-black text-sm mb-1">Status</div>

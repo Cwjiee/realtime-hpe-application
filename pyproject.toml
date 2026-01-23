@@ -9,6 +9,7 @@ dependencies = [
     "mediapipe>=0.10.31",
     "numpy>=2.4.0",
     "opencv-python>=4.11.0.86",
+    "pandas>=3.0.0",
 ]
 
 [dependency-groups]
