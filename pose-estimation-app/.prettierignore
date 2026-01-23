@@ -1,3 +1,27 @@
 # Ignore artifacts:
 build
 coverage
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+
+# Logs and system files
+*.log
+.DS_Store
+.env
+.env.*
+
+# Lockfiles (usually better to let the package manager handle these)
+yarn.lock
+package-lock.json
+
+# If you use any generated assets or media
+public/
+assets/

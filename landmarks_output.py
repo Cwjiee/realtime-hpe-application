@@ -49,6 +49,6 @@ for image in images:
 
         # 3. Save to file
         pose_name = image.split('.')[0]
-        with open(f"pose-estimation-app/src/lib/{pose_name}.json", "w") as f:
+        with open(f"yoga_landmarks/{pose_name}.json", "w") as f:
             json.dump(json_ready_landmarks, f, indent=4)
         print("Bestie, your perfect pose is saved! 🧘‍♀️")
