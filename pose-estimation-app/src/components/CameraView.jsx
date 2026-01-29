@@ -122,8 +122,8 @@ const CameraView = ({ cam, webcamRef, onToggleCam }) => {
     }, [cam, poseLandmarker, renderLoop]);
 
     return (
-        <div className="w-full h-[85vh] max-w-8xl bg-black bg-opacity-40 backdrop-blur-md rounded-3xl overflow-hidden shadow-2xl border border-white border-opacity-20 flex flex-col lg:flex-row">
-            <div className="flex-1 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center relative">
+        <div className="w-full h-[85vh] max-w-8xl bg-white/40 backdrop-blur-md rounded-3xl overflow-hidden shadow-2xl border border-white/50 flex flex-col lg:flex-row">
+            <div className="flex-1 bg-white/20 flex items-center justify-center relative">
                 {cam ? (
                     <>
                         <Webcam
@@ -154,44 +154,44 @@ const CameraView = ({ cam, webcamRef, onToggleCam }) => {
                     </>
                 ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
-                        <Camera className="w-24 h-24 text-white opacity-20" />
+                        <Camera className="w-24 h-24 text-purple-200" />
                     </div>
                 )}
                 <div className="relative z-10 text-center"></div>
             </div>
 
-            <div className="w-full lg:w-80 bg-black bg-opacity-50 p-6 flex flex-col border-t lg:border-t-0 lg:border-l border-white border-opacity-10">
+            <div className="w-full lg:w-80 bg-white/60 backdrop-blur-md p-6 flex flex-col border-t lg:border-t-0 lg:border-l border-purple-100">
                 <div className="flex-1 flex flex-col gap-4 mb-6">
-                    <div className="bg-white bg-opacity-10 rounded-xl p-4 backdrop-blur-sm">
-                        <div className="text-black text-sm mb-1">Current Pose</div>
-                        <div className="text-gray-800 text-xl font-bold">{pose}</div>
+                    <div className="bg-white/50 rounded-xl p-4 border border-purple-100">
+                        <div className="text-gray-600 text-sm mb-1">Current Pose</div>
+                        <div className="text-gray-900 text-xl font-bold">{pose}</div>
                     </div>
-                    <div className="bg-white bg-opacity-10 rounded-xl p-4 backdrop-blur-sm">
-                        <div className="text-black text-sm mb-1">Match Score</div>
+                    <div className="bg-white/50 rounded-xl p-4 border border-purple-100">
+                        <div className="text-gray-600 text-sm mb-1">Match Score</div>
                         <div className={`text-2xl font-bold ${matchScore >= 80 ? 'text-green-600' : matchScore >= 50 ? 'text-yellow-600' : 'text-gray-600'}`}>
                             {matchScore}%
                         </div>
                     </div>
-                    <div className="bg-white bg-opacity-10 rounded-xl p-4 backdrop-blur-sm">
-                        <div className="text-black text-sm mb-1">Status</div>
-                        <div className="text-gray-800 text-xl font-bold">
+                    <div className="bg-white/50 rounded-xl p-4 border border-purple-100">
+                        <div className="text-gray-600 text-sm mb-1">Status</div>
+                        <div className="text-gray-900 text-xl font-bold">
                             {isLoading ? 'Loading model...' : poseLandmarker ? 'Ready' : 'Not initialized'}
                         </div>
                     </div>
-                    <div className="bg-white bg-opacity-10 rounded-xl p-4 backdrop-blur-sm">
-                        <div className="text-black text-sm mb-2">Target Pose</div>
+                    <div className="bg-white/50 rounded-xl p-4 border border-purple-100">
+                        <div className="text-gray-600 text-sm mb-2">Target Pose</div>
                         <select
                             value={selectedPose}
                             onChange={(e) => setSelectedPose(e.target.value)}
-                            className="w-full bg-white bg-opacity-20 text-gray-900 font-semibold rounded-lg px-3 py-2 mb-3 border border-white border-opacity-30 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
+                            className="w-full bg-white text-gray-900 font-semibold rounded-lg px-3 py-2 mb-3 border border-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
                         >
                             {poseOptions.map((option) => (
-                                <option key={option.value} value={option.value} className="bg-gray-800 text-white">
+                                <option key={option.value} value={option.value} className="bg-white text-gray-900">
                                     {option.label}
                                 </option>
                             ))}
                         </select>
-                        <div className="text-black text-sm mb-1">Visual Guidance</div>
+                        <div className="text-gray-600 text-sm mb-1">Visual Guidance</div>
                         <div className="flex items-center gap-3">
                             <Switch
                                 checked={visualGuidanceEnabled}
@@ -206,7 +206,7 @@ const CameraView = ({ cam, webcamRef, onToggleCam }) => {
 
                 <div className="flex gap-4 mt-auto">
                     <button
-                        className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                         onClick={onToggleCam}
                         disabled={isLoading || !poseLandmarker}
                     >

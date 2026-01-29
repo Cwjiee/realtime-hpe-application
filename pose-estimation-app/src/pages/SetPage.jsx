@@ -147,32 +147,32 @@ const SetPage = ({ onHomeClick }) => {
     const isSetComplete = completedPoses.length === poseSequence.length;
 
     return (
-        <div className="flex flex-col min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900">
+        <div className="flex flex-col min-h-screen bg-gradient-to-br from-purple-100 via-white to-purple-200">
             {/* Header */}
-            <header className="flex items-center justify-between px-6 py-4 bg-black bg-opacity-30 backdrop-blur-md border-b border-white border-opacity-10">
+            <header className="flex items-center justify-between px-6 py-4 bg-white/70 backdrop-blur-md border-b border-purple-200">
                 <button
                     onClick={onHomeClick}
-                    className="flex items-center gap-2 text-white hover:text-purple-300 transition-colors"
+                    className="flex items-center gap-2 text-gray-700 hover:text-purple-600 transition-colors"
                 >
                     <Home className="w-5 h-5" />
                     <span className="font-medium">Home</span>
                 </button>
-                <h1 className="text-xl font-bold text-white">Yoga Pose Set</h1>
+                <h1 className="text-xl font-bold text-gray-900">Yoga Pose Set</h1>
                 <div className="w-20" /> {/* Spacer for centering */}
             </header>
 
             {/* Pose Sequence Bar */}
-            <div className="bg-black bg-opacity-40 backdrop-blur-md px-6 py-4 border-b border-white border-opacity-10">
+            <div className="bg-white/50 backdrop-blur-md px-6 py-4 border-b border-purple-200">
                 <div className="flex items-center justify-center gap-2 flex-wrap">
                     {poseSequence.map((poseItem, index) => (
                         <React.Fragment key={poseItem.value}>
                             <button
                                 onClick={() => setCurrentPoseIndex(index)}
                                 className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 ${index === currentPoseIndex
-                                    ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg scale-105'
+                                    ? 'bg-purple-600 text-white shadow-lg scale-105'
                                     : completedPoses.includes(index)
-                                        ? 'bg-green-500 bg-opacity-30 text-green-300 border border-green-500'
-                                        : 'bg-white bg-opacity-10 text-gray-300 hover:bg-opacity-20'
+                                        ? 'bg-green-100 text-green-700 border border-green-200'
+                                        : 'bg-white/50 text-gray-500 hover:bg-white/80'
                                     }`}
                             >
                                 {completedPoses.includes(index) && (
@@ -195,57 +195,67 @@ const SetPage = ({ onHomeClick }) => {
 
             {/* Main Content */}
             <div className="flex-1 flex flex-col items-center justify-center p-8">
-                <div className="w-full h-[70vh] max-w-8xl bg-black bg-opacity-40 backdrop-blur-md rounded-3xl overflow-hidden shadow-2xl border border-white border-opacity-20 flex flex-col lg:flex-row">
+                <div className="w-full h-[70vh] max-w-8xl bg-white/40 backdrop-blur-md rounded-3xl overflow-hidden shadow-2xl border border-white/50 flex flex-col lg:flex-row">
                     {/* Camera View */}
-                    <div className="flex-1 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center relative">
-                        {cam ? (
-                            <>
-                                <Webcam
-                                    id="video"
-                                    className="absolute inset-0 w-full h-full object-cover"
-                                    ref={webcamRef}
-                                    mirrored={true}
-                                    videoConstraints={{
-                                        facingMode: "user",
-                                        width: 1280,
-                                        height: 720
-                                    }}
+                    {/* Split View Container */}
+                    <div className="flex-1 flex flex-col md:flex-row relative overflow-hidden bg-white/20">
+                        {/* Left: Visual Guidance (Reference Pose) - Only shown when enabled */}
+                        {visualGuidanceEnabled && (
+                            <div className="flex-1 border-b md:border-b-0 md:border-r border-purple-100 flex items-center justify-center relative p-4 bg-white/30">
+                                <img
+                                    src={currentTargetPose.image}
+                                    alt={`${currentTargetPose.label} reference`}
+                                    className="max-h-full max-w-full object-contain"
                                 />
-                                <canvas
-                                    ref={canvasRef}
-                                    className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                                    style={{ transform: 'scaleX(-1)' }}
-                                />
-                                {/* Visual Guidance Overlay */}
-                                {visualGuidanceEnabled && (
-                                    <img
-                                        src={currentTargetPose.image}
-                                        alt={`${currentTargetPose.label} pose guide`}
-                                        className="absolute inset-0 w-full h-full object-contain pointer-events-none opacity-60"
-                                        style={{ transform: 'scaleX(-1)' }}
-                                    />
-                                )}
-                            </>
-                        ) : (
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <Camera className="w-24 h-24 text-white opacity-20" />
+                                <div className="absolute top-4 left-4 bg-white/80 backdrop-blur-sm px-3 py-1 rounded-lg text-gray-900 text-sm shadow-sm">
+                                    Reference: {currentTargetPose.label}
+                                </div>
                             </div>
                         )}
+
+                        {/* Right: Camera Feed */}
+                        <div className="flex-1 flex items-center justify-center relative">
+                            {cam ? (
+                                <>
+                                    <Webcam
+                                        id="video"
+                                        className="absolute inset-0 w-full h-full object-cover"
+                                        ref={webcamRef}
+                                        mirrored={true}
+                                        videoConstraints={{
+                                            facingMode: "user",
+                                            width: 1280,
+                                            height: 720
+                                        }}
+                                    />
+                                    <canvas
+                                        ref={canvasRef}
+                                        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                                        style={{ transform: 'scaleX(-1)' }}
+                                    />
+                                    {/* Removed Visual Guidance Overlay */}
+                                </>
+                            ) : (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <Camera className="w-24 h-24 text-purple-200" />
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Side Panel */}
-                    <div className="w-full lg:w-80 bg-black bg-opacity-50 p-6 flex flex-col border-t lg:border-t-0 lg:border-l border-white border-opacity-10">
+                    <div className="w-full lg:w-80 bg-white/60 backdrop-blur-md p-6 flex flex-col border-t lg:border-t-0 lg:border-l border-purple-100">
                         <div className="flex-1 flex flex-col gap-4 mb-6">
                             {/* Target Pose Display */}
-                            <div className="bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl p-4">
-                                <div className="text-white text-sm mb-1 opacity-80">Target Pose</div>
+                            <div className="bg-purple-600 rounded-xl p-4 shadow-md">
+                                <div className="text-purple-100 text-sm mb-1">Target Pose</div>
                                 <div className="text-white text-2xl font-bold">{currentTargetPose.label}</div>
                             </div>
 
 
 
-                            <div className="bg-white bg-opacity-10 rounded-xl p-4 backdrop-blur-sm">
-                                <div className="text-black text-sm mb-1">Match Score</div>
+                            <div className="bg-white/50 rounded-xl p-4 border border-purple-100">
+                                <div className="text-gray-600 text-sm mb-1">Match Score</div>
                                 <div className={`text-2xl font-bold ${matchScore >= 80 ? 'text-green-600' : matchScore >= 50 ? 'text-yellow-600' : 'text-gray-600'}`}>
                                     {matchScore}%
                                 </div>
@@ -257,15 +267,15 @@ const SetPage = ({ onHomeClick }) => {
                                 )}
                             </div>
 
-                            <div className="bg-white bg-opacity-10 rounded-xl p-4 backdrop-blur-sm">
-                                <div className="text-black text-sm mb-1">Status</div>
-                                <div className="text-gray-800 text-xl font-bold">
+                            <div className="bg-white/50 rounded-xl p-4 border border-purple-100">
+                                <div className="text-gray-600 text-sm mb-1">Status</div>
+                                <div className="text-gray-900 text-xl font-bold">
                                     {isLoading ? 'Loading model...' : poseLandmarker ? 'Ready' : 'Not initialized'}
                                 </div>
                             </div>
 
-                            <div className="bg-white bg-opacity-10 rounded-xl p-4 backdrop-blur-sm">
-                                <div className="text-black text-sm mb-1">Visual Guidance</div>
+                            <div className="bg-white/50 rounded-xl p-4 border border-purple-100">
+                                <div className="text-gray-600 text-sm mb-1">Visual Guidance</div>
                                 <div className="flex items-center gap-3">
                                     <Switch
                                         checked={visualGuidanceEnabled}
@@ -278,8 +288,8 @@ const SetPage = ({ onHomeClick }) => {
                             </div>
 
                             {/* Progress */}
-                            <div className="bg-white bg-opacity-10 rounded-xl p-4 backdrop-blur-sm">
-                                <div className="text-black text-sm mb-2">Progress</div>
+                            <div className="bg-white/50 rounded-xl p-4 border border-purple-100">
+                                <div className="text-gray-600 text-sm mb-2">Progress</div>
                                 <div className="flex gap-2">
                                     {poseSequence.map((_, index) => (
                                         <div
@@ -288,7 +298,7 @@ const SetPage = ({ onHomeClick }) => {
                                                 ? 'bg-green-500'
                                                 : index === currentPoseIndex
                                                     ? 'bg-purple-500'
-                                                    : 'bg-gray-600'
+                                                    : 'bg-gray-200'
                                                 }`}
                                         />
                                     ))}
@@ -301,7 +311,7 @@ const SetPage = ({ onHomeClick }) => {
 
                         <div className="flex gap-4 mt-auto">
                             <button
-                                className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                                 onClick={handleToggleCam}
                                 disabled={isLoading || !poseLandmarker}
                             >

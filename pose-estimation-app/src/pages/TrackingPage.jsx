@@ -10,7 +10,7 @@ const TrackingPage = ({ onHomeClick }) => {
     };
 
     return (
-        <div className="flex flex-col min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900">
+        <div className="flex flex-col min-h-screen bg-gradient-to-br from-purple-100 via-white to-purple-200">
             <Header onHomeClick={onHomeClick} />
 
             <div className="flex-1 flex flex-col items-center justify-center p-8">
