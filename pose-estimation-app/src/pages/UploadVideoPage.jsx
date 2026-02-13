@@ -1,7 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Upload, Play, BarChart3, Loader2 } from 'lucide-react';
+import { ArrowLeft, Upload, Play, BarChart3, Loader2, Eye, EyeOff } from 'lucide-react';
 
 const API_BASE = 'http://localhost:8000';
+
+// Map pose names to their outline image files in public/yoga_outline/
+const POSE_OUTLINE_MAP = {
+    'Tree Pose (Vrksasana)': '/yoga_outline/tree.jpg',
+    'Warrior 1 (Virabhadrasana I)': '/yoga_outline/warrior1.png',
+    'Warrior 2 (Virabhadrasana II)': '/yoga_outline/warrior2.png',
+    'Triangle Pose (Trikonasana)': '/yoga_outline/triangle.jpg',
+};
 
 const UploadVideoPage = ({ onHomeClick }) => {
     const [poses, setPoses] = useState([]);
@@ -12,6 +20,7 @@ const UploadVideoPage = ({ onHomeClick }) => {
     const [results, setResults] = useState(null);
     const [error, setError] = useState(null);
     const [dragActive, setDragActive] = useState(false);
+    const [showReference, setShowReference] = useState(false);
     const fileInputRef = useRef(null);
 
     // Fetch available poses on mount
@@ -81,7 +90,8 @@ const UploadVideoPage = ({ onHomeClick }) => {
     };
 
     return (
-        <div className="flex flex-col min-h-screen bg-gradient-to-br from-purple-100 via-white to-purple-200">
+        // <div className="flex flex-col min-h-screen bg-gradient-to-br from-purple-100 via-white to-purple-200">
+        <div className="flex flex-col min-h-screen">
             {/* Header */}
             <nav className="flex items-center justify-between p-6 px-8">
                 <div className="flex items-center gap-3">
@@ -103,18 +113,42 @@ const UploadVideoPage = ({ onHomeClick }) => {
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                         Target Pose
                     </label>
-                    <select
-                        value={selectedPose}
-                        onChange={(e) => setSelectedPose(e.target.value)}
-                        className="w-full max-w-sm bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
-                    >
-                        {poses.map((p) => (
-                            <option key={p} value={p}>
-                                {p}
-                            </option>
-                        ))}
-                    </select>
+                    <div className="flex items-center gap-3">
+                        <select
+                            value={selectedPose}
+                            onChange={(e) => setSelectedPose(e.target.value)}
+                            className="w-full max-w-sm bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
+                        >
+                            {poses.map((p) => (
+                                <option key={p} value={p}>
+                                    {p}
+                                </option>
+                            ))}
+                        </select>
+                        <button
+                            onClick={() => setShowReference((v) => !v)}
+                            className={`flex items-center gap-2 px-4 py-3 rounded-xl border transition-all duration-200 text-sm font-medium whitespace-nowrap ${showReference
+                                    ? 'bg-purple-100 border-purple-300 text-purple-700'
+                                    : 'bg-white border-gray-200 text-gray-600 hover:border-purple-300 hover:text-purple-600'
+                                }`}
+                        >
+                            {showReference ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            {showReference ? 'Hide Reference' : 'Show Reference'}
+                        </button>
+                    </div>
                 </div>
+
+                {/* Visual Reference */}
+                {showReference && selectedPose && POSE_OUTLINE_MAP[selectedPose] && (
+                    <div className="mb-6 bg-white rounded-2xl shadow-md border border-gray-100 p-4 max-w-sm">
+                        <p className="text-sm font-semibold text-gray-600 mb-3">Reference Pose</p>
+                        <img
+                            src={POSE_OUTLINE_MAP[selectedPose]}
+                            alt={`${selectedPose} reference`}
+                            className="w-full rounded-xl object-contain max-h-80"
+                        />
+                    </div>
+                )}
 
                 {/* Upload Area */}
                 <div
@@ -123,8 +157,8 @@ const UploadVideoPage = ({ onHomeClick }) => {
                     onDragLeave={handleDragLeave}
                     onClick={() => fileInputRef.current?.click()}
                     className={`relative cursor-pointer border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-200 mb-6 ${dragActive
-                            ? 'border-purple-500 bg-purple-50'
-                            : 'border-gray-300 bg-white/60 hover:border-purple-400 hover:bg-purple-50/50'
+                        ? 'border-purple-500 bg-purple-50'
+                        : 'border-gray-300 bg-white/60 hover:border-purple-400 hover:bg-purple-50/50'
                         }`}
                 >
                     <input

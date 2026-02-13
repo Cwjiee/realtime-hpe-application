@@ -2,13 +2,14 @@ import React from 'react';
 import { Play, Layers, CircleHelp, LogOut, Flower, History, Trophy } from 'lucide-react';
 
 const HomePage = ({ onStartSession, onStartSet, onLogout, onSessionHistory, onLeaderboard, onUploadVideo }) => (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-purple-100 via-white to-purple-200">
+    // <div className="flex flex-col min-h-screen bg-gradient-to-br from-purple-100 via-white to-purple-200">
+    <div className="flex flex-col min-h-screen">
         <nav className="flex items-center justify-between p-6 px-8">
             <div className="flex items-center gap-3">
                 {/* <div className="bg-purple-600 p-2 rounded-xl shadow-md">
                     <Flower className="w-6 h-6 text-white" />
-                </div> */}
-                <span className="text-xl font-bold text-gray-800 tracking-tight">YogaFlow</span>
+                </div>
+                <span className="text-xl font-bold text-gray-800 tracking-tight">YogaFlow</span> */}
             </div>
             <div className="flex items-center gap-3">
                 <button className="p-2.5 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all duration-200" title="Help">
