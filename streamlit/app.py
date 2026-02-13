@@ -33,6 +33,7 @@ LANDMARKS = {
 }
 
 ANGLE_TOLERANCE = 15.0
+SCORING_SIGMA = 25.0
 
 # Available poses and their reference files
 POSE_OPTIONS = {
@@ -107,13 +108,20 @@ def get_shortest_angle_distance(a, b):
     return abs(diff)
 
 
-def mae_to_score(mae, tolerance=ANGLE_TOLERANCE):
+def mae_to_score(mae, sigma=SCORING_SIGMA):
     """Convert MAE to a 0-100 score."""
-    if mae <= tolerance:
-        return 100.0
-    cutoff = 45.0
-    score = max(0.0, 1.0 - (mae - tolerance) / (cutoff - tolerance))
-    return score * 100
+    # if mae <= tolerance:
+    #     return 100.0
+    # cutoff = 45.0
+    # score = max(0.0, 1.0 - (mae - tolerance) / (cutoff - tolerance))
+    # return score * 100
+    score = 100.0 * np.exp(-(mae**2) / (2 * sigma**2))
+    
+    # Optional: Clip very small scores to 0 for cleanliness
+    if score < 1.0:
+        return 0.0
+        
+    return score
 
 
 def compute_mae(user_angles, reference_pose):

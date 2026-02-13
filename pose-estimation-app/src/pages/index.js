@@ -5,3 +5,4 @@ export { default as LoginPage } from './LoginPage';
 export { default as SignupPage } from './SignupPage';
 export { default as SessionHistoryPage } from './SessionHistoryPage';
 export { default as LeaderboardPage } from './LeaderboardPage';
+export { default as UploadVideoPage } from './UploadVideoPage';
