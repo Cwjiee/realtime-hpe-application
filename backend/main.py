@@ -254,3 +254,32 @@ async def get_session_analytics(session_id: str):
         "worst_pose": {"name": worst["label"], "avg_score": worst["avg_score"]},
         "poses": pose_summaries,
     }
+
+
+@app.get("/api/sessions")
+async def get_all_sessions():
+    """Return a list of all sessions, most recent first, for the history page."""
+    cursor = sessions_collection.find(
+        {},
+        # Exclude the raw per-frame scores array to keep the response lean
+        {"poses.scores": 0},
+    ).sort("created_at", -1)
+
+    sessions = []
+    async for session in cursor:
+        poses = session.get("poses", [])
+        avg_scores = [p["avg_score"] for p in poses if "avg_score" in p]
+        overall_avg = float(np.mean(avg_scores)) if avg_scores else 0.0
+        pose_labels = [p.get("label", p.get("pose_name", "")) for p in poses]
+
+        sessions.append({
+            "session_id": str(session["_id"]),
+            "created_at": session.get("created_at"),
+            "completed_at": session.get("completed_at"),
+            "status": session.get("status", "in_progress"),
+            "total_poses": len(poses),
+            "overall_avg_score": round(overall_avg, 1),
+            "poses": pose_labels,
+        })
+
+    return {"sessions": sessions}
