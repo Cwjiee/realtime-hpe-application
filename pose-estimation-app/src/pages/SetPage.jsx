@@ -23,9 +23,17 @@ const poseSequence = [
     { value: 'triangle', label: 'Triangle', image: trianglePose },
 ];
 
+const POSE_INFO = {
+    'warrior1': { value: 'warrior1', label: 'Warrior I', image: warrior1Pose },
+    'warrior2': { value: 'warrior2', label: 'Warrior II', image: warrior2Pose },
+    'tree': { value: 'tree', label: 'Tree', image: treePose },
+    'triangle': { value: 'triangle', label: 'Triangle', image: trianglePose },
+};
+
 // Phase constants
 const PHASE = {
     LOADING: 'loading',       // Model is loading
+    SELECT_SET: 'select_set', // Selecting sequence
     READY: 'ready',           // Ready to start tracking
     COUNTDOWN: 'countdown',   // 5-second countdown before tracking
     TRACKING: 'tracking',     // 5-second pose tracking (collecting frames)
@@ -47,6 +55,11 @@ const SetPage = ({ onHomeClick }) => {
     const [currentPoseIndex, setCurrentPoseIndex] = useState(0);
     const [completedPoses, setCompletedPoses] = useState([]);
 
+    // Custom Sets State
+    const [customSets, setCustomSets] = useState([]);
+    const [fetchingSets, setFetchingSets] = useState(false);
+    const [activeSequence, setActiveSequence] = useState(poseSequence);
+
     // Session state
     const [sessionId, setSessionId] = useState(null);
     const [analytics, setAnalytics] = useState(null);
@@ -61,9 +74,30 @@ const SetPage = ({ onHomeClick }) => {
     const [poseResults, setPoseResults] = useState(null);
     const [error, setError] = useState(null);
 
-    const currentTargetPose = poseSequence[currentPoseIndex];
+    const currentTargetPose = activeSequence[currentPoseIndex];
 
-    // Initialize pose landmarker and create session when component mounts
+    // Fetch custom sets
+    useEffect(() => {
+        const fetchCustomSets = async () => {
+            if (!token) return;
+            setFetchingSets(true);
+            try {
+                const res = await fetch(`${API_BASE}/api/custom-sets`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    setCustomSets(data.custom_sets || []);
+                }
+            } catch (err) {
+                console.error("Failed to fetch custom sets:", err);
+            }
+            setFetchingSets(false);
+        };
+        fetchCustomSets();
+    }, [token]);
+
+    // Initialize pose landmarker
     useEffect(() => {
         const init = async () => {
             setIsLoading(true);
@@ -107,12 +141,17 @@ const SetPage = ({ onHomeClick }) => {
         }
     };
 
-    // Set phase to ready once model is loaded
+    // Set phase to select_set once model is loaded
     useEffect(() => {
         if (poseLandmarker && phase === PHASE.LOADING) {
-            setPhase(PHASE.READY);
+            setPhase(PHASE.SELECT_SET);
         }
     }, [poseLandmarker, phase]);
+
+    const handleSelectSet = (sequenceData) => {
+        setActiveSequence(sequenceData);
+        setPhase(PHASE.READY);
+    };
 
     // Start tracking flow
     const handleStart = () => {
@@ -173,7 +212,7 @@ const SetPage = ({ onHomeClick }) => {
         try {
             const res = await fetch(`${API_BASE}/api/analyze-frames`, {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
@@ -191,9 +230,9 @@ const SetPage = ({ onHomeClick }) => {
 
             const data = await res.json();
             setPoseResults(data);
-            
+
             // Mark as completed only if not already in the list
-            setCompletedPoses(prev => 
+            setCompletedPoses(prev =>
                 prev.includes(currentPoseIndex) ? prev : [...prev, currentPoseIndex]
             );
         } catch (err) {
@@ -206,7 +245,7 @@ const SetPage = ({ onHomeClick }) => {
 
     // Move to next pose
     const handleNextPose = () => {
-        if (currentPoseIndex < poseSequence.length - 1) {
+        if (currentPoseIndex < activeSequence.length - 1) {
             setCurrentPoseIndex(prev => prev + 1);
             setPoseResults(null);
             setError(null);
@@ -325,8 +364,8 @@ const SetPage = ({ onHomeClick }) => {
         };
     }, [phase, poseLandmarker, renderLoop]);
 
-    // Camera should be on for all phases except loading
-    const cameraOn = phase !== PHASE.LOADING;
+    // Camera should be on for all phases except loading and select_set
+    const cameraOn = phase !== PHASE.LOADING && phase !== PHASE.SELECT_SET;
     const isSetComplete = phase === PHASE.COMPLETE;
 
     // Get phase display info
@@ -334,6 +373,8 @@ const SetPage = ({ onHomeClick }) => {
         switch (phase) {
             case PHASE.LOADING:
                 return { label: 'Loading Model...', color: 'text-gray-500' };
+            case PHASE.SELECT_SET:
+                return { label: 'Select Routine', color: 'text-indigo-600' };
             case PHASE.READY:
                 return { label: 'Ready', color: 'text-blue-500' };
             case PHASE.COUNTDOWN:
@@ -541,10 +582,10 @@ const SetPage = ({ onHomeClick }) => {
             {/* Pose Sequence Bar */}
             <div className="bg-white/50 backdrop-blur-md px-6 py-4 border-b border-purple-200">
                 <div className="flex items-center justify-center gap-2 flex-wrap">
-                    {poseSequence.map((poseItem, index) => (
-                        <React.Fragment key={poseItem.value}>
+                    {activeSequence && activeSequence.map((poseItem, index) => (
+                        <React.Fragment key={index}>
                             <div
-                                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 ${index === currentPoseIndex
+                                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 ${index === currentPoseIndex && phase !== PHASE.SELECT_SET
                                     ? 'bg-purple-600 text-white shadow-lg scale-105'
                                     : completedPoses.includes(index)
                                         ? 'bg-green-100 text-green-700 border border-green-200'
@@ -556,7 +597,7 @@ const SetPage = ({ onHomeClick }) => {
                                 )}
                                 <span className="font-medium">{poseItem.label}</span>
                             </div>
-                            {index < poseSequence.length - 1 && (
+                            {index < activeSequence.length - 1 && (
                                 <ChevronRight className="w-5 h-5 text-gray-500" />
                             )}
                         </React.Fragment>
@@ -584,9 +625,68 @@ const SetPage = ({ onHomeClick }) => {
                             </div>
                         )}
 
-                        {/* Right: Camera Feed */}
-                        <div className="flex-1 flex items-center justify-center relative">
-                            {cameraOn ? (
+                        {/* Right: Camera Feed or Set Selection */}
+                        <div className="flex-1 flex items-center justify-center relative bg-black/5">
+                            {phase === PHASE.SELECT_SET ? (
+                                <div className="absolute inset-0 bg-white/90 backdrop-blur-md overflow-y-auto p-6 md:p-10 flex flex-col items-center">
+                                    <h2 className="text-3xl font-bold text-gray-800 mb-8 mt-4">Choose Your Routine</h2>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
+                                        {/* Default Set Card */}
+                                        <div
+                                            onClick={() => handleSelectSet(poseSequence)}
+                                            className="bg-gradient-to-br from-indigo-50 to-purple-100 rounded-3xl p-6 border-4 border-transparent hover:border-purple-400 cursor-pointer transition-all shadow-md hover:shadow-xl group flex flex-col"
+                                        >
+                                            <div className="flex items-center gap-4 mb-4">
+                                                <h3 className="text-2xl font-bold text-gray-900 group-hover:text-purple-700 transition-colors">Default Flow</h3>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2 mt-auto">
+                                                {poseSequence.map((p, i) => (
+                                                    <span key={i} className="text-xs font-semibold px-2.5 py-1 bg-white/70 text-purple-800 rounded-lg shadow-sm">
+                                                        {i + 1}. {p.label}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Custom Sets */}
+                                        {fetchingSets ? (
+                                            <div className="flex flex-col items-center justify-center min-h-[200px] bg-white/50 rounded-3xl col-span-1 border border-gray-100">
+                                                <Loader2 className="w-8 h-8 text-purple-400 animate-spin mb-3" />
+                                                <p className="text-sm font-medium text-gray-500">Loading custom sets...</p>
+                                            </div>
+                                        ) : customSets.map((set) => {
+                                            const seq = set.poses.map(poseValue => POSE_INFO[poseValue]).filter(Boolean);
+                                            return (
+                                                <div
+                                                    key={set.set_id}
+                                                    onClick={() => handleSelectSet(seq)}
+                                                    className="bg-white rounded-3xl p-6 border-4 border-transparent hover:border-teal-400 cursor-pointer transition-all shadow-md hover:shadow-xl group flex flex-col"
+                                                >
+                                                    <div className="flex items-center gap-4 mb-4">
+                                                        <h3 className="text-2xl font-bold text-gray-900 group-hover:text-teal-700 transition-colors">{set.name}</h3>
+                                                    </div>
+                                                    <p className="text-gray-500 text-xs mb-6 flex-1">Created on {new Date(set.created_at).toLocaleDateString()}</p>
+                                                    <div className="flex flex-wrap gap-2 mt-auto">
+                                                        {seq.map((p, i) => (
+                                                            <span key={i} className="text-xs font-semibold px-2.5 py-1 bg-teal-50 text-teal-800 rounded-lg shadow-sm border border-teal-100">
+                                                                {i + 1}. {p.label}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {!fetchingSets && customSets.length === 0 && (
+                                        <div className="mt-8 text-center text-gray-500">
+                                            <p className="mb-2">You haven't created any custom sets yet.</p>
+                                            <p>Use the <span className="font-semibold text-purple-600">Build Set</span> tool from the Home page to create personalized routines.</p>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : cameraOn ? (
                                 <>
                                     <Webcam
                                         id="video"
@@ -755,7 +855,7 @@ const SetPage = ({ onHomeClick }) => {
                                             key={index}
                                             className={`flex-1 h-2 rounded-full ${completedPoses.includes(index)
                                                 ? 'bg-green-500'
-                                                : index === currentPoseIndex
+                                                : index === currentPoseIndex && phase !== PHASE.SELECT_SET
                                                     ? 'bg-purple-500'
                                                     : 'bg-gray-200'
                                                 }`}
@@ -763,7 +863,7 @@ const SetPage = ({ onHomeClick }) => {
                                     ))}
                                 </div>
                                 <div className="text-gray-600 text-sm mt-2">
-                                    {completedPoses.length} / {poseSequence.length} poses completed
+                                    {completedPoses.length} / {activeSequence.length} poses completed
                                 </div>
                             </div>
                         </div>
@@ -782,7 +882,7 @@ const SetPage = ({ onHomeClick }) => {
                                         className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
                                         onClick={handleNextPose}
                                     >
-                                        {currentPoseIndex < poseSequence.length - 1 ? 'Next Pose' : 'Finish'}
+                                        {currentPoseIndex < activeSequence.length - 1 ? 'Next Pose' : 'Finish'}
                                     </button>
                                 </>
                             )}

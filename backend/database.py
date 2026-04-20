@@ -17,3 +17,4 @@ client = AsyncIOMotorClient(MONGO_URL)
 db = client[DB_NAME]
 sessions_collection = db["sessions"]
 users_collection = db["users"]
+custom_sets_collection = db["custom_sets"]

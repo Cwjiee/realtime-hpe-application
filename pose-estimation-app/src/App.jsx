@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   HomePage, TrackingPage, SetPage, LoginPage, SignupPage,
-  SessionHistoryPage, SessionDetailPage, LeaderboardPage, UploadVideoPage
+  SessionHistoryPage, SessionDetailPage, LeaderboardPage, UploadVideoPage, BuildSetPage
 } from './pages';
 import { useAuth } from './context/AuthContext';
 
@@ -13,6 +13,7 @@ const YogaPoseTracker = () => {
   const handleHomeClick = () => setCurrentPage('home');
   const handleStartSession = () => setCurrentPage('tracking');
   const handleStartSet = () => setCurrentPage('set');
+  const handleBuildSet = () => setCurrentPage('build-set');
   const handleHistoryClick = () => setCurrentPage('history');
   const handleLeaderboardClick = () => setCurrentPage('leaderboard');
   const handleUploadVideo = () => setCurrentPage('upload');
@@ -48,6 +49,8 @@ const YogaPoseTracker = () => {
         return <TrackingPage onHomeClick={handleHomeClick} />;
       case 'set':
         return <SetPage onHomeClick={handleHomeClick} />;
+      case 'build-set':
+        return <BuildSetPage onHomeClick={handleHomeClick} />;
       case 'history':
         return <SessionHistoryPage onHomeClick={handleHomeClick} onSessionSelect={handleSessionSelect} />;
       case 'session-detail':
@@ -67,6 +70,7 @@ const YogaPoseTracker = () => {
           <HomePage
             onStartSession={handleStartSession}
             onStartSet={handleStartSet}
+            onBuildSet={handleBuildSet}
             onLogout={handleLogout}
             onSessionHistory={handleHistoryClick}
             onLeaderboard={handleLeaderboardClick}

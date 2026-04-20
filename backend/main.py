@@ -14,7 +14,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from backend.database import sessions_collection, users_collection
+from backend.database import sessions_collection, users_collection, custom_sets_collection
 from backend.auth import (
     get_password_hash,
     verify_password,
@@ -79,6 +79,11 @@ class UserCreate(BaseModel):
     name: str
     email: str
     password: str
+
+
+class CustomSetCreate(BaseModel):
+    name: str
+    poses: List[str]
 
 
 class Token(BaseModel):
@@ -332,3 +337,53 @@ async def get_all_sessions(current_user: dict = Depends(get_current_user)):
         })
 
     return {"sessions": sessions}
+
+
+@app.post("/api/custom-sets")
+async def create_custom_set(custom_set: CustomSetCreate, current_user: dict = Depends(get_current_user)):
+    """Create a new custom pose set for the current user."""
+    # Validate poses
+    for pose in custom_set.poses:
+        if pose not in FRONTEND_POSE_MAP:
+            raise HTTPException(status_code=400, detail=f"Unknown pose: {pose}")
+            
+    custom_set_doc = {
+        "user_id": str(current_user["_id"]),
+        "name": custom_set.name,
+        "poses": custom_set.poses,
+        "created_at": datetime.now(timezone.utc),
+    }
+    result = await custom_sets_collection.insert_one(custom_set_doc)
+    return {"set_id": str(result.inserted_id), "message": "Custom set created successfully"}
+
+
+@app.get("/api/custom-sets")
+async def get_custom_sets(current_user: dict = Depends(get_current_user)):
+    """Get all custom pose sets for the current user."""
+    cursor = custom_sets_collection.find({"user_id": str(current_user["_id"])})
+    custom_sets = []
+    async for c_set in cursor:
+        custom_sets.append({
+            "set_id": str(c_set["_id"]),
+            "name": c_set["name"],
+            "poses": c_set["poses"],
+            "created_at": c_set.get("created_at"),
+        })
+    return {"custom_sets": custom_sets}
+
+
+@app.delete("/api/custom-sets/{set_id}")
+async def delete_custom_set(set_id: str, current_user: dict = Depends(get_current_user)):
+    """Delete a custom pose set belonging to the current user."""
+    try:
+        oid = ObjectId(set_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid set_id format")
+        
+    result = await custom_sets_collection.delete_one(
+        {"_id": oid, "user_id": str(current_user["_id"])}
+    )
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Custom set not found or unauthorized")
+        
+    return {"message": "Custom set deleted successfully"}
