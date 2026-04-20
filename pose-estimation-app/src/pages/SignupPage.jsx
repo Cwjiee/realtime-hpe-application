@@ -1,16 +1,48 @@
 import React, { useState } from 'react';
 import { Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const SignupPage = ({ onSignup, onHaveAccount }) => {
+    const { login } = useAuth();
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(false);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Prototype logic: just proceed if fields valid
-        onSignup();
+        setError(null);
+
+        if (password !== confirmPassword) {
+            setError("Passwords do not match");
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            const res = await fetch('http://localhost:8000/api/auth/signup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name, email, password }),
+            });
+
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.detail || 'Failed to create account');
+            }
+
+            login(data.access_token);
+            onSignup();
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -20,6 +52,12 @@ const SignupPage = ({ onSignup, onHaveAccount }) => {
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
                     <p className="text-gray-600">Join our community of yoga enthusiasts</p>
                 </div>
+
+                {error && (
+                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+                        <p className="text-sm text-red-600 text-center">{error}</p>
+                    </div>
+                )}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
@@ -93,10 +131,11 @@ const SignupPage = ({ onSignup, onHaveAccount }) => {
                     <div className="pt-2">
                         <button
                             type="submit"
-                            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 group"
+                            disabled={loading}
+                            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 group disabled:opacity-70"
                         >
-                            <span>Create Account</span>
-                            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                            <span>{loading ? 'Creating Account...' : 'Create Account'}</span>
+                            {!loading && <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
                         </button>
                     </div>
                 </form>

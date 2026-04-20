@@ -3,9 +3,11 @@ import {
   HomePage, TrackingPage, SetPage, LoginPage, SignupPage,
   SessionHistoryPage, SessionDetailPage, LeaderboardPage, UploadVideoPage
 } from './pages';
+import { useAuth } from './context/AuthContext';
 
 const YogaPoseTracker = () => {
-  const [currentPage, setCurrentPage] = useState('login');
+  const { isAuthenticated, logout } = useAuth();
+  const [currentPage, setCurrentPage] = useState(isAuthenticated ? 'home' : 'login');
   const [selectedSessionId, setSelectedSessionId] = useState(null);
 
   const handleHomeClick = () => setCurrentPage('home');
@@ -15,10 +17,13 @@ const YogaPoseTracker = () => {
   const handleLeaderboardClick = () => setCurrentPage('leaderboard');
   const handleUploadVideo = () => setCurrentPage('upload');
   const handleLogin = () => setCurrentPage('home');
-  const handleSignup = () => setCurrentPage('home');
+  const handleSignup = () => setCurrentPage('login');
   const handleNeedAccount = () => setCurrentPage('signup');
   const handleHaveAccount = () => setCurrentPage('login');
-  const handleLogout = () => setCurrentPage('login');
+  const handleLogout = () => {
+    logout();
+    setCurrentPage('login');
+  };
 
   const handleSessionSelect = (sessionId) => {
     setSelectedSessionId(sessionId);
@@ -31,11 +36,14 @@ const YogaPoseTracker = () => {
   };
 
   const renderPage = () => {
-    switch (currentPage) {
-      case 'login':
-        return <LoginPage onLogin={handleLogin} onNeedAccount={handleNeedAccount} />;
-      case 'signup':
+    if (!isAuthenticated) {
+      if (currentPage === 'signup') {
         return <SignupPage onSignup={handleSignup} onHaveAccount={handleHaveAccount} />;
+      }
+      return <LoginPage onLogin={handleLogin} onNeedAccount={handleNeedAccount} />;
+    }
+
+    switch (currentPage) {
       case 'tracking':
         return <TrackingPage onHomeClick={handleHomeClick} />;
       case 'set':

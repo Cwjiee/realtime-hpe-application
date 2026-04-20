@@ -1,7 +1,19 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Play, Layers, CircleHelp, LogOut, Flower, History, Trophy } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
-const HomePage = ({ onStartSession, onStartSet, onLogout, onSessionHistory, onLeaderboard, onUploadVideo }) => (
+const HomePage = ({ onStartSession, onStartSet, onLogout, onSessionHistory, onLeaderboard, onUploadVideo }) => {
+    const { isAuthenticated } = useAuth();
+
+    useEffect(() => {
+        if (!isAuthenticated) {
+            onLogout();
+        }
+    }, [isAuthenticated, onLogout]);
+
+    if (!isAuthenticated) return null;
+
+    return (
     // <div className="flex flex-col min-h-screen bg-gradient-to-br from-purple-100 via-white to-purple-200">
     <div className="flex flex-col min-h-screen">
         <nav className="flex items-center justify-between p-6 px-8">
@@ -109,6 +121,7 @@ const HomePage = ({ onStartSession, onStartSet, onLogout, onSessionHistory, onLe
             </div>
         </div>
     </div>
-);
+    );
+};
 
 export default HomePage;
