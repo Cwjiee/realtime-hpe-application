@@ -1,14 +1,44 @@
 import React, { useState } from 'react';
 import { Mail, Lock, ArrowRight } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const LoginPage = ({ onLogin, onNeedAccount }) => {
+    const { login } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(false);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Prototype logic: just proceed if fields aren't empty, or just allow it
-        onLogin();
+        setError(null);
+        setLoading(true);
+
+        try {
+            const formData = new URLSearchParams();
+            formData.append('username', email);
+            formData.append('password', password);
+
+            const res = await fetch('http://localhost:8000/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: formData.toString()
+            });
+
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.detail || 'Failed to login');
+            }
+
+            login(data.access_token);
+            onLogin();
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -18,6 +48,12 @@ const LoginPage = ({ onLogin, onNeedAccount }) => {
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
                     <p className="text-gray-600">Sign in to continue your yoga journey</p>
                 </div>
+
+                {error && (
+                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+                        <p className="text-sm text-red-600 text-center">{error}</p>
+                    </div>
+                )}
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="space-y-2">
@@ -66,10 +102,11 @@ const LoginPage = ({ onLogin, onNeedAccount }) => {
 
                     <button
                         type="submit"
-                        className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 group"
+                        disabled={loading}
+                        className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 group disabled:opacity-70"
                     >
-                        <span>Sign In</span>
-                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                        <span>{loading ? 'Signing in...' : 'Sign In'}</span>
+                        {!loading && <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
                     </button>
                 </form>
 

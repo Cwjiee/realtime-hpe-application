@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Header } from '../components';
 import { Calendar, Clock, Trophy, ChevronRight, Loader2, AlertCircle, CheckCircle2, Activity } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const API_BASE = 'http://localhost:8000';
 
@@ -29,6 +30,7 @@ const getTrophyColor = (score) => {
 };
 
 const SessionHistoryPage = ({ onHomeClick, onSessionSelect }) => {
+    const { token } = useAuth();
     const [sessions, setSessions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -38,7 +40,11 @@ const SessionHistoryPage = ({ onHomeClick, onSessionSelect }) => {
             setLoading(true);
             setError(null);
             try {
-                const res = await fetch(`${API_BASE}/api/sessions`);
+                const res = await fetch(`${API_BASE}/api/sessions`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
                 if (!res.ok) throw new Error(`Server error: ${res.status}`);
                 const data = await res.json();
                 setSessions(data.sessions);
@@ -153,7 +159,6 @@ const SessionHistoryPage = ({ onHomeClick, onSessionSelect }) => {
                                         <div className="text-right">
                                             <div className="text-sm text-gray-500 mb-1">Avg Score</div>
                                             <div className="flex items-center gap-2">
-                                                <Trophy className={`w-5 h-5 ${getTrophyColor(session.overall_avg_score)}`} />
                                                 <span className={`text-2xl font-bold ${getScoreColor(session.overall_avg_score)}`}>
                                                     {session.total_poses > 0 ? `${session.overall_avg_score}%` : '—'}
                                                 </span>

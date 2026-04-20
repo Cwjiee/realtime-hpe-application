@@ -4,6 +4,7 @@ import {
     Home, ChevronLeft, Trophy, TrendingUp, TrendingDown,
     BarChart3, Loader2, AlertCircle, Calendar, Clock, CheckCircle2
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const API_BASE = 'http://localhost:8000';
 
@@ -38,6 +39,7 @@ const getScoreGradient = (score) => {
 };
 
 const SessionDetailPage = ({ sessionId, onBackClick, onHomeClick }) => {
+    const { token } = useAuth();
     const [analytics, setAnalytics] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -48,7 +50,11 @@ const SessionDetailPage = ({ sessionId, onBackClick, onHomeClick }) => {
             setLoading(true);
             setError(null);
             try {
-                const res = await fetch(`${API_BASE}/api/session/${sessionId}/analytics`);
+                const res = await fetch(`${API_BASE}/api/session/${sessionId}/analytics`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
                 if (!res.ok) throw new Error(`Server error: ${res.status}`);
                 const data = await res.json();
                 setAnalytics(data);

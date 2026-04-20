@@ -19,6 +19,9 @@ dependencies = [
     "motor>=3.0.0",
     "pymongo>=4.0.0",
     "python-dotenv>=1.0.0",
+    "passlib[bcrypt]>=1.7.4",
+    "pyjwt>=2.12.1",
+    "bcrypt==3.2.2",
 ]
 
 [dependency-groups]

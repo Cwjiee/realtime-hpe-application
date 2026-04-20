@@ -25,6 +25,7 @@ const poseSequence = [
 // Phase constants
 const PHASE = {
     LOADING: 'loading',       // Model is loading
+    READY: 'ready',           // Ready to start tracking
     COUNTDOWN: 'countdown',   // 5-second countdown before tracking
     TRACKING: 'tracking',     // 5-second pose tracking (collecting frames)
     PROCESSING: 'processing', // Sending frames to backend
@@ -101,13 +102,18 @@ const SetPage = ({ onHomeClick }) => {
         }
     };
 
-    // Auto-start countdown once model is ready
+    // Set phase to ready once model is loaded
     useEffect(() => {
         if (poseLandmarker && phase === PHASE.LOADING) {
-            setPhase(PHASE.COUNTDOWN);
-            setCountdown(5);
+            setPhase(PHASE.READY);
         }
     }, [poseLandmarker, phase]);
+
+    // Start tracking flow
+    const handleStart = () => {
+        setPhase(PHASE.COUNTDOWN);
+        setCountdown(5);
+    };
 
     // Countdown timer
     useEffect(() => {
@@ -253,7 +259,7 @@ const SetPage = ({ onHomeClick }) => {
             // Clear canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Detect pose
+            // Detect pose (possibly can remove cuz no more detection needed, pose is pre-determined)
             const results = detectPose(poseLandmarker, video, performance.now());
 
             // Draw landmarks
@@ -315,6 +321,8 @@ const SetPage = ({ onHomeClick }) => {
         switch (phase) {
             case PHASE.LOADING:
                 return { label: 'Loading Model...', color: 'text-gray-500' };
+            case PHASE.READY:
+                return { label: 'Ready', color: 'text-blue-500' };
             case PHASE.COUNTDOWN:
                 return { label: 'Get Ready!', color: 'text-yellow-600' };
             case PHASE.TRACKING:
@@ -385,7 +393,6 @@ const SetPage = ({ onHomeClick }) => {
                                 {/* Congrats Banner */}
                                 <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl p-6 text-white shadow-xl">
                                     <div className="flex items-center gap-3 mb-2">
-                                        <Trophy className="w-8 h-8 text-yellow-300" />
                                         <h2 className="text-2xl font-bold">Set Complete!</h2>
                                     </div>
                                     <p className="text-purple-100">You completed {analytics.total_poses} poses in this session. Here's how you did.</p>
@@ -477,7 +484,7 @@ const SetPage = ({ onHomeClick }) => {
                                         className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold py-3 px-10 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
                                         onClick={onHomeClick}
                                     >
-                                        🎉 Back to Home
+                                        Back to Home
                                     </button>
                                 </div>
                             </>
@@ -584,6 +591,19 @@ const SetPage = ({ onHomeClick }) => {
                                         className="absolute inset-0 w-full h-full object-cover pointer-events-none"
                                         style={{ transform: 'scaleX(-1)' }}
                                     />
+
+                                    {/* Ready Overlay */}
+                                    {phase === PHASE.READY && (
+                                        <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/40 backdrop-blur-sm">
+                                            <button
+                                                onClick={handleStart}
+                                                className="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-10 rounded-full text-xl shadow-2xl transform transition hover:scale-105 flex items-center gap-3"
+                                            >
+                                                <Camera className="w-7 h-7" />
+                                                Start Pose Set
+                                            </button>
+                                        </div>
+                                    )}
 
                                     {/* Countdown Overlay */}
                                     {phase === PHASE.COUNTDOWN && (

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Upload, Play, BarChart3, Loader2, Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const API_BASE = 'http://localhost:8000';
 
@@ -12,6 +13,7 @@ const POSE_OUTLINE_MAP = {
 };
 
 const UploadVideoPage = ({ onHomeClick }) => {
+    const { token } = useAuth();
     const [poses, setPoses] = useState([]);
     const [selectedPose, setSelectedPose] = useState('');
     const [videoFile, setVideoFile] = useState(null);
@@ -72,6 +74,9 @@ const UploadVideoPage = ({ onHomeClick }) => {
         try {
             const res = await fetch(`${API_BASE}/api/analyze`, {
                 method: 'POST',
+                headers: token ? {
+                    'Authorization': `Bearer ${token}`
+                } : {},
                 body: formData,
             });
 

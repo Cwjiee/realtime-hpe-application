@@ -16,3 +16,4 @@ DB_NAME = "yoga_app"
 client = AsyncIOMotorClient(MONGO_URL)
 db = client[DB_NAME]
 sessions_collection = db["sessions"]
+users_collection = db["users"]

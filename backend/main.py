@@ -9,11 +9,19 @@ from typing import List, Optional
 
 import numpy as np
 from bson import ObjectId
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends, status
+from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from backend.database import sessions_collection
+from backend.database import sessions_collection, users_collection
+from backend.auth import (
+    get_password_hash,
+    verify_password,
+    create_access_token,
+    get_current_user,
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+)
 from backend.pose_scoring import (
     POSE_OPTIONS,
     load_reference_pose,
@@ -67,16 +75,61 @@ class AnalyzeFramesRequest(BaseModel):
     session_id: Optional[str] = None
 
 
+class UserCreate(BaseModel):
+    name: str
+    email: str
+    password: str
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
 @app.get("/api/poses")
 def get_poses():
     """Return available pose options."""
     return {"poses": list(POSE_OPTIONS.keys())}
 
 
+@app.post("/api/auth/signup", response_model=Token)
+async def signup(user: UserCreate):
+    existing_user = await users_collection.find_one({"email": user.email})
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered"
+        )
+    hashed_password = get_password_hash(user.password)
+    user_doc = {
+        "name": user.name,
+        "email": user.email,
+        "hashed_password": hashed_password,
+        "created_at": datetime.now(timezone.utc),
+    }
+    result = await users_collection.insert_one(user_doc)
+    access_token = create_access_token(data={"sub": str(result.inserted_id)})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+@app.post("/api/auth/login", response_model=Token)
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    user = await users_collection.find_one({"email": form_data.username})
+    if not user or not verify_password(form_data.password, user["hashed_password"]):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token = create_access_token(data={"sub": str(user["_id"])})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
 @app.post("/api/session/start")
-async def start_session():
+async def start_session(current_user: dict = Depends(get_current_user)):
     """Create a new session and return its ID."""
     session_doc = {
+        "user_id": str(current_user["_id"]),
         "created_at": datetime.now(timezone.utc),
         "status": "in_progress",
         "poses": [],
@@ -119,7 +172,6 @@ async def analyze_video(
             "min_score": float(np.min(scores_list)) if scores_list else 0.0,
         }
     finally:
-        # Cleanup temp file
         try:
             os.unlink(tmp_path)
         except OSError:
@@ -133,7 +185,6 @@ async def analyze_frames(request: AnalyzeFramesRequest):
     Accepts JSON with pose_name (short key), frames (list of landmark arrays),
     and an optional session_id to persist results.
     """
-    # Resolve short frontend pose name to full POSE_OPTIONS key
     full_pose_name = FRONTEND_POSE_MAP.get(request.pose_name)
     if full_pose_name is None or full_pose_name not in POSE_OPTIONS:
         raise HTTPException(
@@ -149,7 +200,6 @@ async def analyze_frames(request: AnalyzeFramesRequest):
 
     scores = []
     for frame_landmarks in request.frames:
-        # Convert list of Landmark objects to numpy array (x, y)
         landmarks_np = np.array([[lm.x, lm.y] for lm in frame_landmarks])
         try:
             norm_landmarks = normalize_landmarks(landmarks_np)
@@ -168,7 +218,6 @@ async def analyze_frames(request: AnalyzeFramesRequest):
         "min_score": float(np.min(scores)) if scores else 0.0,
     }
 
-    # Persist to MongoDB if session_id is provided
     if request.session_id:
         try:
             oid = ObjectId(request.session_id)
@@ -257,10 +306,10 @@ async def get_session_analytics(session_id: str):
 
 
 @app.get("/api/sessions")
-async def get_all_sessions():
-    """Return a list of all sessions, most recent first, for the history page."""
+async def get_all_sessions(current_user: dict = Depends(get_current_user)):
+    """Return a list of all sessions for the current user, most recent first."""
     cursor = sessions_collection.find(
-        {},
+        {"user_id": str(current_user["_id"])},
         # Exclude the raw per-frame scores array to keep the response lean
         {"poses.scores": 0},
     ).sort("created_at", -1)
