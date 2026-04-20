@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { Camera, ChevronRight, Home, CheckCircle2, Loader2, Timer, Activity, Trophy, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react';
 import Webcam from 'react-webcam';
 import { initializePoseLandmarker, detectPose, drawLandmarks } from '../utils/visionTaskConfig';
@@ -37,6 +38,7 @@ const SetPage = ({ onHomeClick }) => {
     const webcamRef = useRef(null);
     const canvasRef = useRef(null);
     const [poseLandmarker, setPoseLandmarker] = useState(null);
+    const { token } = useAuth();
     const [isLoading, setIsLoading] = useState(true);
     const animationFrameRef = useRef(null);
     const lastVideoTimeRef = useRef(-1);
@@ -69,7 +71,6 @@ const SetPage = ({ onHomeClick }) => {
                 // Create session in parallel with model loading
                 const [landmarker] = await Promise.all([
                     initializePoseLandmarker(),
-                    createSession(),
                 ]);
                 setPoseLandmarker(landmarker);
             } catch (error) {
@@ -89,9 +90,13 @@ const SetPage = ({ onHomeClick }) => {
 
     // Create a new session in MongoDB
     const createSession = async () => {
+        if (!token) return;
         try {
             const res = await fetch(`${API_BASE}/api/session/start`, {
                 method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             });
             if (res.ok) {
                 const data = await res.json();
@@ -113,6 +118,7 @@ const SetPage = ({ onHomeClick }) => {
     const handleStart = () => {
         setPhase(PHASE.COUNTDOWN);
         setCountdown(5);
+        createSession(); // Create session when exercise actually starts
     };
 
     // Countdown timer
@@ -167,7 +173,10 @@ const SetPage = ({ onHomeClick }) => {
         try {
             const res = await fetch(`${API_BASE}/api/analyze-frames`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify({
                     pose_name: currentTargetPose.value,
                     frames: frames,
@@ -214,7 +223,11 @@ const SetPage = ({ onHomeClick }) => {
         if (!sessionId) return;
         setAnalyticsLoading(true);
         try {
-            const res = await fetch(`${API_BASE}/api/session/${sessionId}/analytics`);
+            const res = await fetch(`${API_BASE}/api/session/${sessionId}/analytics`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
             if (res.ok) {
                 const data = await res.json();
                 setAnalytics(data);
