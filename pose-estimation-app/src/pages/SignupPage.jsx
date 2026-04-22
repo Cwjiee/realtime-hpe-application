@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, Lock, User, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE } from '../config';
 
 const SignupPage = ({ onSignup, onHaveAccount }) => {
     const { login } = useAuth();
@@ -23,7 +24,7 @@ const SignupPage = ({ onSignup, onHaveAccount }) => {
         setLoading(true);
 
         try {
-            const res = await fetch('http://localhost:8000/api/auth/signup', {
+            const res = await fetch(`${API_BASE}/api/auth/signup`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

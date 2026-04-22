@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Upload, Play, BarChart3, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-
-const API_BASE = 'http://localhost:8000';
+import { API_BASE } from '../config';
 
 // Map pose names to their outline image files in public/yoga_outline/
 const POSE_OUTLINE_MAP = {

@@ -5,8 +5,7 @@ import {
     BarChart3, Loader2, AlertCircle, Calendar, Clock, CheckCircle2
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-
-const API_BASE = 'http://localhost:8000';
+import { API_BASE } from '../config';
 
 const formatDate = (isoString) => {
     if (!isoString) return '—';

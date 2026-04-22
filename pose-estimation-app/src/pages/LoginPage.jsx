@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, Lock, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE } from '../config';
 
 const LoginPage = ({ onLogin, onNeedAccount }) => {
     const { login } = useAuth();
@@ -19,7 +20,7 @@ const LoginPage = ({ onLogin, onNeedAccount }) => {
             formData.append('username', email);
             formData.append('password', password);
 
-            const res = await fetch('http://localhost:8000/api/auth/login', {
+            const res = await fetch(`${API_BASE}/api/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',

@@ -7,8 +7,10 @@ const HomePage = ({ onStartSession, onStartSet, onBuildSet, onLogout, onSessionH
 
     useEffect(() => {
         if (!isAuthenticated) {
+            console.log("no")
             onLogout();
         }
+        console.log("yes")
     }, [isAuthenticated, onLogout]);
 
     if (!isAuthenticated) return null;

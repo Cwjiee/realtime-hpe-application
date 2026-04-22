@@ -12,8 +12,7 @@ import treePose from '../assets/tree.jpg';
 import trianglePose from '../assets/triangle.jpg';
 import warrior1Pose from '../assets/warrior1.png';
 import warrior2Pose from '../assets/warrior2.png';
-
-const API_BASE = 'http://localhost:8000';
+import { API_BASE } from '../config';
 
 // Pose set sequence
 const poseSequence = [

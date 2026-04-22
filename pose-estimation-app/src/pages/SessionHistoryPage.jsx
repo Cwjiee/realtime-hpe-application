@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Header } from '../components';
 import { Calendar, Clock, Trophy, ChevronRight, Loader2, AlertCircle, CheckCircle2, Activity } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-
-const API_BASE = 'http://localhost:8000';
+import { API_BASE } from '../config';
 
 const formatDate = (isoString) => {
     if (!isoString) return '—';

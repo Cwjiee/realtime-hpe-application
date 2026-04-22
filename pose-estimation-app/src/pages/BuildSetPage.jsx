@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Header } from '../components';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE } from '../config';
 import { Loader2, Plus, Trash2, CheckCircle2, ChevronRight, AlertCircle, Dumbbell, Activity, Save } from 'lucide-react';
-
-const API_BASE = 'http://localhost:8000';
 
 const AVAILABLE_POSES = [
     { value: 'warrior1', label: 'Warrior I' },
