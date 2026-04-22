@@ -1,0 +1,42 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.env
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Ignore root Python scripts (backend.Dockerfile only copies specific files anyway, but good practice)
+/*.py
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+*.ipynb
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+pose-estimation-app/node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build/Logs
+logs/
+*.log
+dist/
+build/

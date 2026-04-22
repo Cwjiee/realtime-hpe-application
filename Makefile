@@ -1,5 +1,5 @@
 SERVER_CMD := uv run uvicorn backend.main:app --port 8000
-CLIENT_CMD := npm --prefix pose-estimation-app run dev
+CLIENT_CMD := npm --prefix pose-estimation-app run dev -- --host
 SERVER_PORT := 8000
 SERVER_HOST := localhost 
 BACKEND_DIR := /Users/weijie/code/fyp

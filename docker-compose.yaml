@@ -1,0 +1,32 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend.Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - ./backend:/app/backend
+      - ./reference:/app/reference
+    # Allows for live-reloading of backend code if Uvicorn is run with --reload (though currently not in Dockerfile, but good to have volume mounted)
+
+  frontend:
+    build:
+      context: ./pose-estimation-app
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    volumes:
+      # Mount source directories for Hot Module Replacement (HMR)
+      - ./pose-estimation-app/src:/app/src
+      - ./pose-estimation-app/public:/app/public
+      - ./pose-estimation-app/index.html:/app/index.html
+      - ./pose-estimation-app/vite.config.js:/app/vite.config.js
+      - ./pose-estimation-app/package.json:/app/package.json
+      - /app/node_modules
+    depends_on:
+      - backend
