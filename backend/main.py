@@ -237,6 +237,7 @@ async def analyze_frames(request: AnalyzeFramesRequest):
             "min_score": result["min_score"],
             "total_frames": result["total_frames"],
             "scores": scores,
+            "frames": [[{"x": lm.x, "y": lm.y, "z": lm.z, "visibility": lm.visibility} for lm in frame] for frame in request.frames],
             "timestamp": datetime.now(timezone.utc),
         }
 
@@ -259,7 +260,10 @@ async def get_session_analytics(session_id: str):
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid session_id format.")
 
-    session = await sessions_collection.find_one({"_id": oid})
+    session = await sessions_collection.find_one(
+        {"_id": oid},
+        {"poses.scores": 0, "poses.frames": 0}
+    )
     if not session:
         raise HTTPException(status_code=404, detail="Session not found.")
 
@@ -315,8 +319,8 @@ async def get_all_sessions(current_user: dict = Depends(get_current_user)):
     """Return a list of all sessions for the current user, most recent first."""
     cursor = sessions_collection.find(
         {"user_id": str(current_user["_id"])},
-        # Exclude the raw per-frame scores array to keep the response lean
-        {"poses.scores": 0},
+        # Exclude the raw per-frame scores and frames array to keep the response lean
+        {"poses.scores": 0, "poses.frames": 0},
     ).sort("created_at", -1)
 
     sessions = []
