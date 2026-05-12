@@ -398,3 +398,99 @@ async def delete_custom_set(set_id: str, current_user: dict = Depends(get_curren
         raise HTTPException(status_code=404, detail="Custom set not found or unauthorized")
         
     return {"message": "Custom set deleted successfully"}
+
+
+@app.get("/api/leaderboard")
+async def get_leaderboard(pose: Optional[str] = None):
+    """
+    Return the global leaderboard ranked by best average score.
+    - No pose filter  → overall ranking (avg of all pose scores per session)
+    - pose=warrior1   → ranking for that specific pose only (best attempt)
+    """
+    if pose and pose not in FRONTEND_POSE_MAP:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown pose filter: {pose}. Available: {list(FRONTEND_POSE_MAP.keys())}",
+        )
+
+    if pose:
+        pipeline = [
+            {"$match": {"status": "completed"}},
+            {"$unwind": "$poses"},
+            {"$match": {"poses.pose_name": pose}},
+            {
+                "$group": {
+                    "_id": "$user_id",
+                    "best_score": {"$max": "$poses.avg_score"},
+                    "total_attempts": {"$sum": 1},
+                    "latest_attempt": {"$max": "$poses.timestamp"},
+                }
+            },
+            {"$sort": {"best_score": -1}},
+        ]
+    else:
+        pipeline = [
+            {"$match": {"status": "completed", "poses": {"$ne": []}}},
+            {
+                "$project": {
+                    "user_id": 1,
+                    "created_at": 1,
+                    "session_avg": {"$avg": "$poses.avg_score"},
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$user_id",
+                    "best_score": {"$max": "$session_avg"},
+                    "total_sessions": {"$sum": 1},
+                    "latest_session": {"$max": "$created_at"},
+                }
+            },
+            {"$sort": {"best_score": -1}},
+        ]
+
+    cursor = sessions_collection.aggregate(pipeline)
+    raw_entries = []
+    async for entry in cursor:
+        raw_entries.append(entry)
+
+    # Fetch user names in bulk
+    user_ids = [e["_id"] for e in raw_entries if e["_id"]]
+    user_oids = []
+    for uid in user_ids:
+        try:
+            user_oids.append(ObjectId(uid))
+        except Exception:
+            pass
+
+    users_map = {}
+    if user_oids:
+        users_cursor = users_collection.find(
+            {"_id": {"$in": user_oids}},
+            {"name": 1},
+        )
+        async for u in users_cursor:
+            users_map[str(u["_id"])] = u.get("name", "Unknown")
+
+    rankings = []
+    for rank, entry in enumerate(raw_entries, start=1):
+        uid = entry["_id"]
+        rankings.append({
+            "rank": rank,
+            "user_id": uid,
+            "name": users_map.get(uid, "Unknown"),
+            "avatar": _initials(users_map.get(uid, "?")),
+            "score": round(entry["best_score"], 1),
+            "total_sessions": entry.get("total_sessions", entry.get("total_attempts", 0)),
+            "latest_activity": entry.get("latest_session", entry.get("latest_attempt")),
+        })
+
+    return {"rankings": rankings, "pose_filter": pose}
+
+
+def _initials(name: str) -> str:
+    """Return up to 2-letter initials from a display name."""
+    parts = name.strip().split()
+    if len(parts) >= 2:
+        return (parts[0][0] + parts[-1][0]).upper()
+    return name[:2].upper() if name else "?"
