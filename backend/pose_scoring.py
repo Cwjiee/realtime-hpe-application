@@ -79,6 +79,26 @@ def normalize_landmarks(landmarks):
 def extract_joint_angles(lm):
     """Extract joint angles from landmarks."""
     return {
+        "left_elbow": calculate_angle(
+            lm[LANDMARKS["left_shoulder"]],
+            lm[LANDMARKS["left_elbow"]],
+            lm[LANDMARKS["left_wrist"]],
+        ),
+        "right_elbow": calculate_angle(
+            lm[LANDMARKS["right_shoulder"]],
+            lm[LANDMARKS["right_elbow"]],
+            lm[LANDMARKS["right_wrist"]],
+        ),
+        "left_shoulder": calculate_angle(
+            lm[LANDMARKS["left_elbow"]],
+            lm[LANDMARKS["left_shoulder"]],
+            lm[LANDMARKS["left_hip"]],
+        ),
+        "right_shoulder": calculate_angle(
+            lm[LANDMARKS["right_elbow"]],
+            lm[LANDMARKS["right_shoulder"]],
+            lm[LANDMARKS["right_hip"]],
+        ),
         "left_knee": calculate_angle(
             lm[LANDMARKS["left_hip"]],
             lm[LANDMARKS["left_knee"]],
@@ -131,6 +151,120 @@ def compute_mae(user_angles, reference_pose):
         total_weight += 1
 
     return total_error / (total_weight + 1e-6)
+
+
+_JOINT_LABELS = {
+    "left_elbow": "left elbow",
+    "right_elbow": "right elbow",
+    "left_shoulder": "left shoulder",
+    "right_shoulder": "right shoulder",
+    "left_knee": "left knee",
+    "right_knee": "right knee",
+    "left_hip": "left hip",
+    "right_hip": "right hip",
+}
+
+
+def _angle_feedback(joint: str, user_angle: float, ref_angle: float) -> str:
+    diff = user_angle - ref_angle
+    label = _JOINT_LABELS.get(joint, joint.replace("_", " "))
+    abs_diff = abs(diff)
+
+    if "knee" in joint or "elbow" in joint:
+        if diff > 0:
+            action = "Bend"
+            detail = "it's too straight"
+        else:
+            action = "Straighten"
+            detail = "it's too bent"
+    elif "hip" in joint:
+        if diff > 0:
+            action = "Close"
+            detail = "it's too open"
+        else:
+            action = "Open"
+            detail = "it's too closed"
+    elif "shoulder" in joint:
+        if diff > 0:
+            action = "Lower"
+            detail = "it's raised too high"
+        else:
+            action = "Raise"
+            detail = "it's too low"
+    else:
+        action = "Adjust"
+        detail = f"off by {abs_diff:.0f}°"
+
+    return f"{action} your {label} — {detail} (off by {abs_diff:.0f}°)"
+
+
+def generate_pose_feedback(
+    frames: list,
+    reference_angles: dict,
+    tolerance: float = ANGLE_TOLERANCE,
+) -> list[str]:
+    """
+    Generate feedback for all joints that deviate beyond *tolerance* degrees.
+
+    Parameters
+    ----------
+    frames : list
+        List of landmark frames.  Each frame is a list of objects with
+        ``.x`` and ``.y`` attributes (Pydantic ``Landmark`` instances) **or**
+        dicts with ``"x"`` / ``"y"`` keys (when loaded back from MongoDB).
+    reference_angles : dict
+        Reference joint angles for the target pose.
+    tolerance : float
+        Angle tolerance in degrees.
+
+    Returns
+    -------
+    list[str]
+        A feedback string for every joint that needs correction, ordered
+        from largest deviation to smallest.
+    """
+    all_angles: list[dict] = []
+
+    for frame in frames:
+        try:
+            # Support both Pydantic objects and plain dicts
+            if hasattr(frame[0], "x"):
+                landmarks_np = np.array([[lm.x, lm.y] for lm in frame])
+            else:
+                landmarks_np = np.array([[lm["x"], lm["y"]] for lm in frame])
+
+            norm = normalize_landmarks(landmarks_np)
+            angles = extract_joint_angles(norm)
+            all_angles.append(angles)
+        except Exception:
+            continue
+
+    if not all_angles:
+        return ["Could not extract angles from the captured frames."]
+
+    # Average angles across valid frames
+    avg_angles: dict[str, float] = {}
+    for joint in all_angles[0]:
+        avg_angles[joint] = float(
+            np.mean([a[joint] for a in all_angles if joint in a])
+        )
+
+    # Compare against reference and collect deviations
+    deviations: list[tuple[str, float, float, float]] = []
+    for joint, ref_angle in reference_angles.items():
+        if joint not in avg_angles:
+            continue
+        error = get_shortest_angle_distance(avg_angles[joint], ref_angle)
+        if error > tolerance:
+            deviations.append((joint, avg_angles[joint], ref_angle, error))
+
+    if not deviations:
+        return ["Great job! All joints are within the ideal range."]
+
+    # Sort by largest deviation first
+    deviations.sort(key=lambda x: x[3], reverse=True)
+
+    return [_angle_feedback(joint, user_ang, ref_ang) for joint, user_ang, ref_ang, _ in deviations]
 
 
 def load_reference_pose(pose_name: str) -> dict:

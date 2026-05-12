@@ -203,6 +203,21 @@ const SessionDetailPage = ({ sessionId, onBackClick, onHomeClick }) => {
                                                     <span>Min: <span className="font-medium text-gray-700">{pose.min_score.toFixed(1)}%</span></span>
                                                     <span>Frames: <span className="font-medium text-gray-700">{pose.total_frames}</span></span>
                                                 </div>
+                                                {/* Feedback Tips */}
+                                                {pose.feedback && pose.feedback.length > 0 && (
+                                                    <div className="mt-2 pt-2 border-t border-purple-50">
+                                                        <ul className="space-y-1">
+                                                            {pose.feedback.map((tip, tipIdx) => (
+                                                                <li key={tipIdx} className="flex items-start gap-2 text-xs">
+                                                                    <span className={`mt-1 w-1.5 h-1.5 rounded-full shrink-0 ${
+                                                                        tip.startsWith('Great') ? 'bg-green-400' : 'bg-amber-400'
+                                                                    }`} />
+                                                                    <span className="text-gray-600">{tip}</span>
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                )}
                                             </div>
                                         ))}
                                     </div>

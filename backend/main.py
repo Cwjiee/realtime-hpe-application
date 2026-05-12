@@ -30,6 +30,7 @@ from backend.pose_scoring import (
     extract_joint_angles,
     compute_mae,
     mae_to_score,
+    generate_pose_feedback,
 )
 
 app = FastAPI(title="Yoga Pose Scoring API")
@@ -229,6 +230,8 @@ async def analyze_frames(request: AnalyzeFramesRequest):
         except Exception:
             raise HTTPException(status_code=400, detail="Invalid session_id format.")
 
+        feedback = generate_pose_feedback(request.frames, reference_angles)
+
         pose_record = {
             "pose_name": request.pose_name,
             "label": FRONTEND_POSE_LABELS.get(request.pose_name, request.pose_name),
@@ -238,8 +241,11 @@ async def analyze_frames(request: AnalyzeFramesRequest):
             "total_frames": result["total_frames"],
             "scores": scores,
             "frames": [[{"x": lm.x, "y": lm.y, "z": lm.z, "visibility": lm.visibility} for lm in frame] for frame in request.frames],
+            "feedback": feedback,
             "timestamp": datetime.now(timezone.utc),
         }
+
+        result["feedback"] = feedback
 
         update_result = await sessions_collection.update_one(
             {"_id": oid},
@@ -289,6 +295,7 @@ async def get_session_analytics(session_id: str):
             "max_score": p["max_score"],
             "min_score": p["min_score"],
             "total_frames": p["total_frames"],
+            "feedback": p.get("feedback", []),
         })
 
     avg_scores = [p["avg_score"] for p in pose_summaries]

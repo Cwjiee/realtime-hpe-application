@@ -526,6 +526,21 @@ const SetPage = ({ onHomeClick }) => {
                                                     <span>Min: <span className="font-medium text-gray-700">{pose.min_score.toFixed(1)}%</span></span>
                                                     <span>Frames: <span className="font-medium text-gray-700">{pose.total_frames}</span></span>
                                                 </div>
+                                                {/* Feedback Tips */}
+                                                {pose.feedback && pose.feedback.length > 0 && (
+                                                    <div className="mt-2 pt-2 border-t border-purple-50">
+                                                        <ul className="space-y-1">
+                                                            {pose.feedback.map((tip, tipIdx) => (
+                                                                <li key={tipIdx} className="flex items-start gap-2 text-xs">
+                                                                    <span className={`mt-1 w-1.5 h-1.5 rounded-full shrink-0 ${
+                                                                        tip.startsWith('Great') ? 'bg-green-400' : 'bg-amber-400'
+                                                                    }`} />
+                                                                    <span className="text-gray-600">{tip}</span>
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                )}
                                             </div>
                                         ))}
                                     </div>
@@ -553,7 +568,7 @@ const SetPage = ({ onHomeClick }) => {
                                     className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-8 rounded-xl transition-all duration-200 shadow-lg"
                                     onClick={onHomeClick}
                                 >
-                                    🎉 Back to Home
+                                    Back to Home
                                 </button>
                             </div>
                         )}
@@ -822,6 +837,23 @@ const SetPage = ({ onHomeClick }) => {
                                             <div className="font-semibold text-gray-800">{poseResults.total_frames}</div>
                                         </div>
                                     </div>
+
+                                    {/* Feedback Tips */}
+                                    {poseResults.feedback && poseResults.feedback.length > 0 && (
+                                        <div className="mt-3 pt-3 border-t border-purple-100">
+                                            <div className="text-gray-600 text-xs font-semibold mb-2">Feedback</div>
+                                            <ul className="space-y-1.5">
+                                                {poseResults.feedback.map((tip, idx) => (
+                                                    <li key={idx} className="flex items-start gap-2 text-sm">
+                                                        <span className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${
+                                                            tip.startsWith('Great') ? 'bg-green-400' : 'bg-amber-400'
+                                                        }`} />
+                                                        <span className="text-gray-700">{tip}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
