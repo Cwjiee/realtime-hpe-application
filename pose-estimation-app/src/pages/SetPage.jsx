@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Camera, ChevronRight, Home, CheckCircle2, Loader2, Timer, Activity, Trophy, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react';
 import Webcam from 'react-webcam';
-import { initializePoseLandmarker, detectPose, drawLandmarks } from '../utils/visionTaskConfig';
+import { initializePoseLandmarker, detectPose, drawLandmarks, drawGuidanceLandmarks } from '../utils/visionTaskConfig';
+import { computeJointGuidance } from '../utils/angleUtils';
 import { Switch } from "@/components/ui/switch";
 
 // Import yoga pose outline images
@@ -51,6 +52,7 @@ const SetPage = ({ onHomeClick }) => {
     const lastVideoTimeRef = useRef(-1);
 
     const [visualGuidanceEnabled, setVisualGuidanceEnabled] = useState(false);
+    const [visualOutlineEnabled, setVisualOutlineEnabled] = useState(false);
     const [currentPoseIndex, setCurrentPoseIndex] = useState(0);
     const [completedPoses, setCompletedPoses] = useState([]);
 
@@ -72,6 +74,8 @@ const SetPage = ({ onHomeClick }) => {
     const collectedFramesRef = useRef([]);
     const [poseResults, setPoseResults] = useState(null);
     const [error, setError] = useState(null);
+    const [liveGuidance, setLiveGuidance] = useState(null);
+    const guidanceThrottleRef = useRef(0);
 
     const currentTargetPose = activeSequence[currentPoseIndex];
 
@@ -310,18 +314,35 @@ const SetPage = ({ onHomeClick }) => {
             // Clear canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Detect pose (possibly can remove cuz no more detection needed, pose is pre-determined)
+            // Detect pose
             const results = detectPose(poseLandmarker, video, performance.now());
 
-            // Draw landmarks
-            if (results) {
-                drawLandmarks(ctx, results, canvas);
+            // Draw landmarks with optional guidance colouring
+            if (results && results.landmarks && results.landmarks.length > 0) {
+                const userLandmarks = results.landmarks[0];
+                let guidance = null;
+
+                // Compute real-time joint guidance when visual guidance is enabled
+                if (visualGuidanceEnabled && currentTargetPose) {
+                    guidance = computeJointGuidance(userLandmarks, currentTargetPose.value);
+
+                    // Throttle state updates to ~5 Hz to avoid React re-render overhead
+                    const now = performance.now();
+                    if (now - guidanceThrottleRef.current > 200) {
+                        guidanceThrottleRef.current = now;
+                        setLiveGuidance(guidance);
+                    }
+                }
+
+                // Use guidance-aware drawing when enabled, otherwise standard drawing
+                if (visualGuidanceEnabled && guidance) {
+                    drawGuidanceLandmarks(ctx, results, canvas, guidance);
+                } else {
+                    drawLandmarks(ctx, results, canvas);
+                }
 
                 // Collect frame landmarks during tracking phase
-                if (results.landmarks && results.landmarks.length > 0) {
-                    const userLandmarks = results.landmarks[0];
-
-                    // Store landmarks as plain arrays for serialization
+                if (phase === 'tracking') {
                     const frameData = userLandmarks.map(lm => ({
                         x: lm.x,
                         y: lm.y,
@@ -336,11 +357,11 @@ const SetPage = ({ onHomeClick }) => {
         }
 
         animationFrameRef.current = requestAnimationFrame(renderLoop);
-    }, [poseLandmarker]);
+    }, [poseLandmarker, visualGuidanceEnabled, currentTargetPose, phase]);
 
     // Start/stop render loop based on phase
     useEffect(() => {
-        const shouldTrack = phase === PHASE.TRACKING;
+        const shouldTrack = phase === PHASE.TRACKING || phase === PHASE.COUNTDOWN;
 
         if (shouldTrack && poseLandmarker) {
             lastVideoTimeRef.current = -1;
@@ -354,6 +375,7 @@ const SetPage = ({ onHomeClick }) => {
                 const ctx = canvasRef.current.getContext('2d');
                 ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
             }
+            setLiveGuidance(null);
         }
 
         return () => {
@@ -625,8 +647,8 @@ const SetPage = ({ onHomeClick }) => {
                     {/* Camera View */}
                     {/* Split View Container */}
                     <div className="flex-1 flex flex-col md:flex-row relative overflow-hidden bg-white/20">
-                        {/* Left: Visual Guidance (Reference Pose) - Only shown when enabled */}
-                        {visualGuidanceEnabled && (
+                        {/* Left: Visual Outline (Reference Pose) - Only shown when enabled */}
+                        {visualOutlineEnabled && (
                             <div className="flex-1 border-b md:border-b-0 md:border-r border-purple-100 flex items-center justify-center relative p-4 bg-white/30">
                                 <img
                                     src={currentTargetPose.image}
@@ -789,8 +811,8 @@ const SetPage = ({ onHomeClick }) => {
                     </div>
 
                     {/* Side Panel */}
-                    <div className="w-full lg:w-80 bg-white/60 backdrop-blur-md p-6 flex flex-col border-t lg:border-t-0 lg:border-l border-purple-100">
-                        <div className="flex-1 flex flex-col gap-4 mb-6">
+                    <div className="w-full lg:w-80 bg-white/60 backdrop-blur-md flex flex-col border-t lg:border-t-0 lg:border-l border-purple-100">
+                        <div className="flex-1 flex flex-col gap-4 p-6 overflow-y-auto">
                             {/* Target Pose Display */}
                             <div className="bg-purple-600 rounded-xl p-4 shadow-md">
                                 <div className="text-purple-100 text-sm mb-1">Target Pose</div>
@@ -877,6 +899,50 @@ const SetPage = ({ onHomeClick }) => {
                                 </div>
                             </div>
 
+                            <div className="bg-white/50 rounded-xl p-4 border border-purple-100">
+                                <div className="text-gray-600 text-sm mb-1">Visual Outline</div>
+                                <div className="flex items-center gap-3">
+                                    <Switch
+                                        checked={visualOutlineEnabled}
+                                        onCheckedChange={setVisualOutlineEnabled}
+                                    />
+                                    <span className="text-gray-800 text-sm">
+                                        {visualOutlineEnabled ? 'On' : 'Off'}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Live Joint Guidance Panel */}
+                            {visualGuidanceEnabled && liveGuidance && (phase === PHASE.TRACKING || phase === PHASE.COUNTDOWN) && (
+                                <div className="bg-white/50 rounded-xl p-4 border border-purple-100">
+                                    <div className="text-gray-600 text-xs font-semibold mb-2">Joint Guidance</div>
+                                    <div className="space-y-1.5">
+                                        {Object.entries(liveGuidance).map(([joint, { status, error }]) => {
+                                            const label = joint.replace('_', ' ');
+                                            const statusColor = status === 'good'
+                                                ? 'bg-green-500'
+                                                : status === 'warn'
+                                                    ? 'bg-amber-500'
+                                                    : 'bg-red-500';
+                                            const textColor = status === 'good'
+                                                ? 'text-green-700'
+                                                : status === 'warn'
+                                                    ? 'text-amber-700'
+                                                    : 'text-red-600';
+                                            return (
+                                                <div key={joint} className="flex items-center gap-2 text-xs">
+                                                    <span className={`w-2 h-2 rounded-full shrink-0 ${statusColor}`} />
+                                                    <span className="capitalize text-gray-700 flex-1">{label}</span>
+                                                    <span className={`font-mono font-semibold ${textColor}`}>
+                                                        {status === 'good' ? '✓' : `${Math.round(error)}°`}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Progress */}
                             <div className="bg-white/50 rounded-xl p-4 border border-purple-100">
                                 <div className="text-gray-600 text-sm mb-2">Progress</div>
@@ -900,7 +966,7 @@ const SetPage = ({ onHomeClick }) => {
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="flex gap-3 mt-auto">
+                        <div className="flex gap-3 mt-auto p-6 border-t border-purple-100">
                             {phase === PHASE.RESULTS && (
                                 <>
                                     <button
