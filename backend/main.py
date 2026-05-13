@@ -488,9 +488,97 @@ async def get_leaderboard(pose: Optional[str] = None):
     return {"rankings": rankings, "pose_filter": pose}
 
 
+@app.get("/api/profile")
+async def get_profile(current_user: dict = Depends(get_current_user)):
+    """Return the current user's profile information and practice statistics."""
+    user_id = str(current_user["_id"])
+
+    # --- Basic info ---
+    profile = {
+        "name": current_user.get("name", "Unknown"),
+        "email": current_user.get("email", ""),
+        "joined_at": current_user.get("created_at"),
+    }
+
+    # --- Session statistics ---
+    all_sessions_cursor = sessions_collection.find(
+        {"user_id": user_id},
+        {"poses.scores": 0, "poses.frames": 0},
+    )
+    sessions = []
+    async for s in all_sessions_cursor:
+        sessions.append(s)
+
+    total_sessions = len(sessions)
+    completed_sessions = sum(1 for s in sessions if s.get("status") == "completed")
+
+    # Per-pose aggregation
+    pose_stats: dict[str, list[float]] = {}  # pose_name -> list of avg_scores
+    total_poses_practiced = 0
+
+    for s in sessions:
+        for p in s.get("poses", []):
+            total_poses_practiced += 1
+            pn = p.get("pose_name", "")
+            avg = p.get("avg_score", 0.0)
+            pose_stats.setdefault(pn, []).append(avg)
+
+    per_pose = []
+    for pn, scores in pose_stats.items():
+        per_pose.append({
+            "pose_name": pn,
+            "label": FRONTEND_POSE_LABELS.get(pn, pn),
+            "attempts": len(scores),
+            "best_score": round(float(max(scores)), 1),
+            "avg_score": round(float(np.mean(scores)), 1),
+        })
+    per_pose.sort(key=lambda x: x["best_score"], reverse=True)
+
+    # Overall average across all completed session averages
+    session_averages = []
+    for s in sessions:
+        if s.get("status") == "completed":
+            poses = s.get("poses", [])
+            avgs = [p["avg_score"] for p in poses if "avg_score" in p]
+            if avgs:
+                session_averages.append(float(np.mean(avgs)))
+
+    overall_avg = round(float(np.mean(session_averages)), 1) if session_averages else 0.0
+
+    # Recent sessions (last 5)
+    recent = sorted(sessions, key=lambda s: s.get("created_at", datetime.min), reverse=True)[:5]
+    recent_sessions = []
+    for s in recent:
+        poses = s.get("poses", [])
+        avgs = [p["avg_score"] for p in poses if "avg_score" in p]
+        avg = round(float(np.mean(avgs)), 1) if avgs else 0.0
+        recent_sessions.append({
+            "session_id": str(s["_id"]),
+            "created_at": s.get("created_at"),
+            "status": s.get("status", "in_progress"),
+            "total_poses": len(poses),
+            "overall_avg_score": avg,
+        })
+
+    # Custom sets count
+    custom_sets_count = await custom_sets_collection.count_documents({"user_id": user_id})
+
+    return {
+        **profile,
+        "total_sessions": total_sessions,
+        "completed_sessions": completed_sessions,
+        "total_poses_practiced": total_poses_practiced,
+        "overall_avg_score": overall_avg,
+        "custom_sets_count": custom_sets_count,
+        "per_pose_stats": per_pose,
+        "recent_sessions": recent_sessions,
+    }
+
+
 def _initials(name: str) -> str:
     """Return up to 2-letter initials from a display name."""
     parts = name.strip().split()
     if len(parts) >= 2:
         return (parts[0][0] + parts[-1][0]).upper()
     return name[:2].upper() if name else "?"
+

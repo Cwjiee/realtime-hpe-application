@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import {
   HomePage, TrackingPage, SetPage, LoginPage, SignupPage,
-  SessionHistoryPage, SessionDetailPage, LeaderboardPage, UploadVideoPage, BuildSetPage
+  SessionHistoryPage, SessionDetailPage, LeaderboardPage, UploadVideoPage, BuildSetPage,
+  ProfilePage
 } from './pages';
 import { useAuth } from './context/AuthContext';
 
@@ -17,6 +18,7 @@ const YogaPoseTracker = () => {
   const handleHistoryClick = () => setCurrentPage('history');
   const handleLeaderboardClick = () => setCurrentPage('leaderboard');
   const handleUploadVideo = () => setCurrentPage('upload');
+  const handleProfileClick = () => setCurrentPage('profile');
   const handleLogin = () => setCurrentPage('home');
   const handleSignup = () => setCurrentPage('login');
   const handleNeedAccount = () => setCurrentPage('signup');
@@ -65,6 +67,8 @@ const YogaPoseTracker = () => {
         return <LeaderboardPage onHomeClick={handleHomeClick} />;
       case 'upload':
         return <UploadVideoPage onHomeClick={handleHomeClick} />;
+      case 'profile':
+        return <ProfilePage onHomeClick={handleHomeClick} />;
       default:
         return (
           <HomePage
@@ -75,6 +79,7 @@ const YogaPoseTracker = () => {
             onSessionHistory={handleHistoryClick}
             onLeaderboard={handleLeaderboardClick}
             onUploadVideo={handleUploadVideo}
+            onProfile={handleProfileClick}
           />
         );
     }

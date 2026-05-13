@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
-import { Play, Layers, CircleHelp, LogOut, Flower, History, Trophy, Upload } from 'lucide-react';
+import { Play, Layers, CircleHelp, LogOut, Flower, History, Trophy, Upload, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import Logo from '../../public/logo.png';
 
-const HomePage = ({ onStartSession, onStartSet, onBuildSet, onLogout, onSessionHistory, onLeaderboard, onUploadVideo }) => {
+const HomePage = ({ onStartSession, onStartSet, onBuildSet, onLogout, onSessionHistory, onLeaderboard, onUploadVideo, onProfile }) => {
     const { isAuthenticated } = useAuth();
 
     useEffect(() => {
@@ -20,15 +21,22 @@ const HomePage = ({ onStartSession, onStartSet, onBuildSet, onLogout, onSessionH
             {/* <div className="flex flex-col min-h-screen"> */}
             <nav className="flex items-center justify-between p-6 px-8">
                 <div className="flex items-center gap-3">
-                    {/* <div className="bg-purple-600 p-2 rounded-xl shadow-md">
-                    <Flower className="w-6 h-6 text-white" />
-                </div>
-                <span className="text-xl font-bold text-gray-800 tracking-tight">YogaFlow</span> */}
+                    <div className="border-2 border-purple-600 rounded-lg">
+                        <img src={Logo} alt="Logo" className="w-18 h-18 rounded-lg" />
+                    </div>
+                    {/* <span className="text-xl font-bold text-gray-800 tracking-tight">YogaFlow</span> */}
                 </div>
                 <div className="flex items-center gap-3">
                     <button className="p-2.5 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all duration-200" title="Help">
                         {/* Help */}
                         <CircleHelp className="w-6 h-6" />
+                    </button>
+                    <button
+                        onClick={onProfile}
+                        className="p-2.5 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all duration-200"
+                        title="My Profile"
+                    >
+                        <User className="w-6 h-6" />
                     </button>
                     <button
                         onClick={onLogout}

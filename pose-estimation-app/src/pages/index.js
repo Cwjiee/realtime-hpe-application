@@ -8,3 +8,4 @@ export { default as SessionDetailPage } from './SessionDetailPage';
 export { default as LeaderboardPage } from './LeaderboardPage';
 export { default as UploadVideoPage } from './UploadVideoPage';
 export { default as BuildSetPage } from './BuildSetPage';
+export { default as ProfilePage } from './ProfilePage';

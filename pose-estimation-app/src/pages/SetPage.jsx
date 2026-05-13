@@ -159,7 +159,7 @@ const SetPage = ({ onHomeClick }) => {
     // Start tracking flow
     const handleStart = () => {
         setPhase(PHASE.COUNTDOWN);
-        setCountdown(5);
+        setCountdown(8);
         createSession(); // Create session when exercise actually starts
     };
 
@@ -554,9 +554,8 @@ const SetPage = ({ onHomeClick }) => {
                                                         <ul className="space-y-1">
                                                             {pose.feedback.map((tip, tipIdx) => (
                                                                 <li key={tipIdx} className="flex items-start gap-2 text-xs">
-                                                                    <span className={`mt-1 w-1.5 h-1.5 rounded-full shrink-0 ${
-                                                                        tip.startsWith('Great') ? 'bg-green-400' : 'bg-amber-400'
-                                                                    }`} />
+                                                                    <span className={`mt-1 w-1.5 h-1.5 rounded-full shrink-0 ${tip.startsWith('Great') ? 'bg-green-400' : 'bg-amber-400'
+                                                                        }`} />
                                                                     <span className="text-gray-600">{tip}</span>
                                                                 </li>
                                                             ))}
@@ -867,9 +866,8 @@ const SetPage = ({ onHomeClick }) => {
                                             <ul className="space-y-1.5">
                                                 {poseResults.feedback.map((tip, idx) => (
                                                     <li key={idx} className="flex items-start gap-2 text-sm">
-                                                        <span className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${
-                                                            tip.startsWith('Great') ? 'bg-green-400' : 'bg-amber-400'
-                                                        }`} />
+                                                        <span className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${tip.startsWith('Great') ? 'bg-green-400' : 'bg-amber-400'
+                                                            }`} />
                                                         <span className="text-gray-700">{tip}</span>
                                                     </li>
                                                 ))}
