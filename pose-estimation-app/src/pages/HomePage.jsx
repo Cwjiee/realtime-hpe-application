@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Play, Layers, CircleHelp, LogOut, Flower, History, Trophy } from 'lucide-react';
+import { Play, Layers, CircleHelp, LogOut, Flower, History, Trophy, Upload } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const HomePage = ({ onStartSession, onStartSet, onBuildSet, onLogout, onSessionHistory, onLeaderboard, onUploadVideo }) => {
@@ -27,8 +27,8 @@ const HomePage = ({ onStartSession, onStartSet, onBuildSet, onLogout, onSessionH
                 </div>
                 <div className="flex items-center gap-3">
                     <button className="p-2.5 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all duration-200" title="Help">
-                        Help
-                        {/* <CircleHelp className="w-6 h-6" /> */}
+                        {/* Help */}
+                        <CircleHelp className="w-6 h-6" />
                     </button>
                     <button
                         onClick={onLogout}
@@ -51,7 +51,7 @@ const HomePage = ({ onStartSession, onStartSet, onBuildSet, onLogout, onSessionH
                 </div>
 
                 {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6"> */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-15">
+                <div className="grid grid-cols-1 md:grid-cols-6 gap-15">
                     {/*
             <button
                 onClick={onStartSession}
@@ -70,13 +70,13 @@ const HomePage = ({ onStartSession, onStartSet, onBuildSet, onLogout, onSessionH
 
                     <button
                         onClick={onStartSet}
-                        className="group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-gray-100"
+                        className="group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-gray-100 md:col-span-2"
                     >
                         <div className="absolute inset-0 bg-teal-50 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <div className="relative z-10">
-                            {/* <div className="bg-teal-600 w-16 h-16 rounded-xl flex items-center justify-center mb-4">
-                            <Layers className="w-8 h-8 text-white" />
-                        </div> */}
+                        <div className="relative z-10 flex flex-col items-center text-center">
+                            <div className="bg-teal-600 w-16 h-16 rounded-xl flex items-center justify-center mb-4 mx-auto">
+                                <Layers className="w-8 h-8 text-white" />
+                            </div>
                             <h3 className="text-2xl font-bold text-gray-800 mb-2">Start Set</h3>
                             <p className="text-gray-600">Practice a curated sequence of yoga poses</p>
                         </div>
@@ -84,52 +84,55 @@ const HomePage = ({ onStartSession, onStartSet, onBuildSet, onLogout, onSessionH
 
                     <button
                         onClick={onBuildSet}
-                        className="group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-gray-100"
+                        className="group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-gray-100 md:col-span-2"
                     >
                         <div className="absolute inset-0 bg-teal-50 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <div className="relative z-10">
-                            {/* <div className="bg-teal-600 w-16 h-16 rounded-xl flex items-center justify-center mb-4">
-                            <Layers className="w-8 h-8 text-white" />
-                        </div> */}
+                        <div className="relative z-10 flex flex-col items-center text-center">
+                            <div className="bg-teal-600 w-16 h-16 rounded-xl flex items-center justify-center mb-4 mx-auto">
+                                <Layers className="w-8 h-8 text-white" />
+                            </div>
                             <h3 className="text-2xl font-bold text-gray-800 mb-2">Build Set</h3>
                             <p className="text-gray-600">Create your own sequence of poses</p>
                         </div>
                     </button>
 
                     <button
-                        onClick={onSessionHistory}
-                        className="group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-gray-100"
-                    >
-                        <div className="absolute inset-0 bg-orange-50 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <div className="relative z-10">
-                            {/* <div className="bg-orange-500 w-16 h-16 rounded-xl flex items-center justify-center mb-4">
-                            <History className="w-8 h-8 text-white" />
-                        </div> */}
-                            <h3 className="text-2xl font-bold text-gray-800 mb-2">Session History</h3>
-                            <p className="text-gray-600">View your past sessions and progress</p>
-                        </div>
-                    </button>
-
-                    <button
                         onClick={onLeaderboard}
-                        className="group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-gray-100"
+                        className="group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-gray-100 md:col-span-2"
                     >
                         <div className="absolute inset-0 bg-yellow-50 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <div className="relative z-10">
-                            {/* <div className="bg-yellow-500 w-16 h-16 rounded-xl flex items-center justify-center mb-4">
-                            <Trophy className="w-8 h-8 text-white" />
-                        </div> */}
+                        <div className="relative z-10 flex flex-col items-center text-center">
+                            <div className="bg-yellow-500 w-16 h-16 rounded-xl flex items-center justify-center mb-4 mx-auto">
+                                <Trophy className="w-8 h-8 text-white" />
+                            </div>
                             <h3 className="text-2xl font-bold text-gray-800 mb-2">Leaderboard</h3>
                             <p className="text-gray-600">Check ranking of everyone's score</p>
                         </div>
                     </button>
 
                     <button
+                        onClick={onSessionHistory}
+                        className="group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-gray-100 md:col-span-3"
+                    >
+                        <div className="absolute inset-0 bg-orange-50 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="relative z-10 flex flex-col items-center text-center">
+                            <div className="bg-orange-500 w-16 h-16 rounded-xl flex items-center justify-center mb-4 mx-auto">
+                                <History className="w-8 h-8 text-white" />
+                            </div>
+                            <h3 className="text-2xl font-bold text-gray-800 mb-2">Session History</h3>
+                            <p className="text-gray-600">View your past sessions and progress</p>
+                        </div>
+                    </button>
+
+                    <button
                         onClick={onUploadVideo}
-                        className="group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-gray-100"
+                        className="group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-gray-100 md:col-span-3"
                     >
                         <div className="absolute inset-0 bg-indigo-50 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <div className="relative z-10">
+                        <div className="relative z-10 flex flex-col items-center text-center">
+                            <div className="bg-indigo-500 w-16 h-16 rounded-xl flex items-center justify-center mb-4 mx-auto">
+                                <Upload className="w-8 h-8 text-white" />
+                            </div>
                             <h3 className="text-2xl font-bold text-gray-800 mb-2">Upload Video</h3>
                             <p className="text-gray-600">Score your yoga pose from a recorded video</p>
                         </div>
