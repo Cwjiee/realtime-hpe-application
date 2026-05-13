@@ -915,7 +915,7 @@ const SetPage = ({ onHomeClick }) => {
                                 <div className="bg-white/50 rounded-xl p-4 border border-purple-100">
                                     <div className="text-gray-600 text-xs font-semibold mb-2">Joint Guidance</div>
                                     <div className="space-y-1.5">
-                                        {Object.entries(liveGuidance).map(([joint, { status, error }]) => {
+                                        {Object.entries(liveGuidance).map(([joint, { status, error, userAngle, refAngle }]) => {
                                             const label = joint.replace('_', ' ');
                                             const statusColor = status === 'good'
                                                 ? 'bg-green-500'
@@ -927,12 +927,30 @@ const SetPage = ({ onHomeClick }) => {
                                                 : status === 'warn'
                                                     ? 'text-amber-700'
                                                     : 'text-red-600';
+
+                                            // Generate human-readable hint
+                                            let hint = '✓';
+                                            if (status !== 'good') {
+                                                const diff = userAngle - refAngle;
+                                                if (joint.includes('elbow')) {
+                                                    hint = diff > 0 ? 'Bend more' : 'Straighten';
+                                                } else if (joint.includes('knee')) {
+                                                    hint = diff > 0 ? 'Bend leg' : 'Straighten leg';
+                                                } else if (joint.includes('shoulder')) {
+                                                    hint = diff > 0 ? 'Lower arm' : 'Raise arm';
+                                                } else if (joint.includes('hip')) {
+                                                    hint = diff > 0 ? 'Close hip' : 'Open hip';
+                                                } else {
+                                                    hint = 'Adjust';
+                                                }
+                                            }
+
                                             return (
                                                 <div key={joint} className="flex items-center gap-2 text-xs">
                                                     <span className={`w-2 h-2 rounded-full shrink-0 ${statusColor}`} />
                                                     <span className="capitalize text-gray-700 flex-1">{label}</span>
-                                                    <span className={`font-mono font-semibold ${textColor}`}>
-                                                        {status === 'good' ? '✓' : `${Math.round(error)}°`}
+                                                    <span className={`font-semibold ${textColor}`}>
+                                                        {hint}
                                                     </span>
                                                 </div>
                                             );

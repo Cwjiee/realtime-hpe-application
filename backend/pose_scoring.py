@@ -165,37 +165,57 @@ _JOINT_LABELS = {
 }
 
 
+def _severity_word(abs_diff: float) -> str:
+    """Return a qualitative word describing how far off the joint is."""
+    if abs_diff <= 25:
+        return "a little"
+    if abs_diff <= 45:
+        return "noticeably"
+    return "significantly"
+
+
 def _angle_feedback(joint: str, user_angle: float, ref_angle: float) -> str:
     diff = user_angle - ref_angle
     label = _JOINT_LABELS.get(joint, joint.replace("_", " "))
     abs_diff = abs(diff)
+    severity = _severity_word(abs_diff)
 
-    if "knee" in joint or "elbow" in joint:
+    if "elbow" in joint:
+        # Elbow angle: larger = straighter, smaller = more bent
         if diff > 0:
             action = "Bend"
-            detail = "it's too straight"
+            detail = f"it's {severity} too straight"
         else:
             action = "Straighten"
-            detail = "it's too bent"
-    elif "hip" in joint:
-        if diff > 0:
-            action = "Close"
-            detail = "it's too open"
-        else:
-            action = "Open"
-            detail = "it's too closed"
-    elif "shoulder" in joint:
-        if diff > 0:
-            action = "Lower"
-            detail = "it's raised too high"
-        else:
-            action = "Raise"
-            detail = "it's too low"
-    else:
-        action = "Adjust"
-        detail = f"off by {abs_diff:.0f}°"
+            detail = f"it's {severity} too bent"
+        return f"{action} your {label} more — {detail}"
 
-    return f"{action} your {label} — {detail} (off by {abs_diff:.0f}°)"
+    if "knee" in joint:
+        if diff > 0:
+            action = "Bend"
+            detail = f"your leg is {severity} too straight"
+        else:
+            action = "Straighten"
+            detail = f"your leg is {severity} too bent"
+        return f"{action} your {label} more — {detail}"
+
+    if "hip" in joint:
+        if diff > 0:
+            detail = f"it's {severity} too open"
+            return f"Bring your torso closer at the {label} — {detail}"
+        else:
+            detail = f"it's {severity} too closed"
+            return f"Open up at the {label} — {detail}"
+
+    if "shoulder" in joint:
+        if diff > 0:
+            detail = f"it's {severity} too high"
+            return f"Lower your {label.replace('shoulder', 'arm')} — {detail}"
+        else:
+            detail = f"it's {severity} too low"
+            return f"Raise your {label.replace('shoulder', 'arm')} — {detail}"
+
+    return f"Adjust your {label} — it's {severity} off from the target position"
 
 
 def generate_pose_feedback(
