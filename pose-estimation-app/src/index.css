@@ -121,3 +121,231 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ===== YOGA APP DESIGN SYSTEM ===== */
+:root {
+  --ya-serif: "Iowan Old Style", "Palatino Linotype", "Palatino", "Book Antiqua", "Georgia", serif;
+  --ya-sans: "Manrope", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --ya-bg: #e1d6bc;
+  --ya-bg-2: #d6c9a8;
+  --ya-paper: #ece2c8;
+  --ya-paper-2: #f3ead2;
+  --ya-paper-3: #f8f1dc;
+  --ya-ink: #2c2a22;
+  --ya-ink-soft: #4a4536;
+  --ya-muted: #8a8270;
+  --ya-rule: #c4b693;
+  --ya-brown-1: #5b2f0e;
+  --ya-brown-2: #794620;
+  --ya-brown-3: #8e5e32;
+  --ya-camel: #a88860;
+  --ya-sand: #b3a085;
+  --ya-stone: #bab395;
+  --ya-pale-sage: #c9ccae;
+  --ya-sage: #a9b393;
+  --ya-olive: #6e7657;
+  --ya-forest: #424b36;
+  --ya-forest-deep: #2f3727;
+  --ya-ok: #6e7657;
+  --ya-warn: #a8782e;
+  --ya-fix: #8e3a18;
+  --ya-gold: #b08742;
+  --ya-silver: #9ea08c;
+  --ya-bronze: #8e5e32;
+  --ya-amber: #a8782e;
+}
+
+/* Shell used by all new-design pages */
+.ya-page {
+  font-family: var(--ya-sans);
+  color: var(--ya-ink);
+  background: var(--ya-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: 0.005em;
+  min-height: 100vh;
+}
+.ya-page a { color: inherit; text-decoration: none; }
+.ya-page ::selection { background: var(--ya-olive); color: var(--ya-paper-2); }
+
+.ya-shell {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 20px 48px 24px;
+}
+.ya-shell-flex {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 20px 48px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  height: 100vh;
+}
+
+/* Top bar / nav */
+.ya-topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 36px; }
+.ya-home-link {
+  display: inline-flex; align-items: center; gap: 8px; font-size: 13px;
+  color: var(--ya-ink-soft); padding: 8px 14px 8px 10px; border-radius: 999px;
+  border: 1px solid transparent; width: fit-content;
+  transition: background .2s, color .2s, border-color .2s; letter-spacing: 0.02em; cursor: pointer;
+  background: transparent;
+}
+.ya-home-link:hover { background: var(--ya-paper-2); border-color: var(--ya-rule); color: var(--ya-ink); }
+.ya-home-link svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+.ya-topnav { display: flex; align-items: center; gap: 6px; }
+.ya-topnav button {
+  width: 40px; height: 40px; border-radius: 50%; border: 1px solid transparent;
+  background: transparent; color: var(--ya-ink-soft); display: grid; place-items: center;
+  cursor: pointer; transition: background .2s, color .2s, border-color .2s;
+}
+.ya-topnav button:hover { background: var(--ya-paper-2); border-color: var(--ya-rule); color: var(--ya-ink); }
+.ya-topnav svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Page head */
+.ya-page-head {
+  display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 24px;
+  padding-bottom: 18px; border-bottom: 1px solid var(--ya-rule);
+}
+.ya-page-head h1 {
+  font-family: var(--ya-serif); font-size: 44px; font-weight: 400;
+  letter-spacing: -0.014em; line-height: 1.0; margin: 0 0 8px; color: var(--ya-ink);
+}
+.ya-page-head h1 em { font-style: italic; color: var(--ya-brown-2); }
+.ya-page-head .ya-sub { font-size: 13px; color: var(--ya-ink-soft); margin: 0; }
+
+/* Serif heading */
+.ya-serif { font-family: var(--ya-serif); }
+
+/* ===== LOGIN / SIGNUP PAGE ===== */
+.ya-auth-page {
+  font-family: var(--ya-sans); color: var(--ya-ink); background: var(--ya-bg);
+  -webkit-font-smoothing: antialiased; min-height: 100vh;
+}
+.ya-auth-app { display: grid; grid-template-columns: 1.05fr 1fr; min-height: 100vh; }
+.ya-auth-image { position: relative; overflow: hidden; background: #2a2620; }
+.ya-auth-photo {
+  position: absolute; inset: 0;
+  background-image: url("/yoga-practice.png"); background-size: cover; background-position: 60% 50%;
+  filter: saturate(0.92) contrast(1.02);
+}
+.ya-auth-photo::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(43,38,30,0.22) 0%, rgba(43,38,30,0.05) 28%, rgba(43,38,30,0.55) 100%);
+}
+.ya-auth-form-pane {
+  position: relative; display: flex; flex-direction: column;
+  padding: 28px clamp(40px, 6vw, 88px);
+  background: radial-gradient(1200px 600px at 100% 0%, #f3ebd9 0%, transparent 60%), var(--ya-bg);
+}
+.ya-auth-form-shell { flex: 1; display: flex; align-items: center; justify-content: flex-start; }
+.ya-auth-form { width: 100%; max-width: 460px; }
+.ya-auth-h1 {
+  font-family: var(--ya-serif); font-size: clamp(44px, 4.6vw, 64px); font-weight: 400;
+  letter-spacing: -0.012em; line-height: 1.02; margin: 0 0 18px; color: var(--ya-ink); text-wrap: balance;
+}
+.ya-auth-h1 em { font-style: italic; color: var(--ya-brown-2); }
+.ya-auth-sub { font-size: 15px; line-height: 1.55; color: var(--ya-ink-soft); max-width: 38ch; margin: 0 0 40px; }
+.ya-field { position: relative; padding: 18px 0 10px; border-bottom: 1px solid var(--ya-rule); transition: border-color .25s; }
+.ya-field + .ya-field { margin-top: 6px; }
+.ya-field:focus-within { border-color: var(--ya-forest); }
+.ya-field label { display: block; font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--ya-muted); font-weight: 500; transition: color .2s; }
+.ya-field:focus-within label { color: var(--ya-olive); }
+.ya-field .ya-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.ya-field input {
+  flex: 1; border: 0; background: transparent; outline: none; font: inherit;
+  font-size: 17px; color: var(--ya-ink); padding: 4px 0 6px; letter-spacing: 0.005em;
+}
+.ya-field input::placeholder { color: #b8ad94; font-weight: 300; }
+.ya-auth-btn {
+  width: 100%; background: var(--ya-forest); color: var(--ya-paper); font: inherit;
+  font-size: 15px; font-weight: 500; letter-spacing: 0.04em; border: 0; border-radius: 999px;
+  padding: 18px 22px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  gap: 12px; transition: background .2s, transform .15s, box-shadow .2s;
+  box-shadow: 0 10px 30px -16px rgba(47,55,39,0.6);
+}
+.ya-auth-btn:hover { background: var(--ya-forest-deep); transform: translateY(-1px); }
+.ya-auth-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+.ya-auth-btn .arr { display: inline-block; transition: transform .25s; }
+.ya-auth-btn:hover .arr { transform: translateX(4px); }
+.ya-auth-meta { display: flex; justify-content: space-between; align-items: center; margin: 22px 0 30px; font-size: 13px; }
+.ya-auth-link { color: var(--ya-brown-2); text-decoration: none; font-weight: 500; border-bottom: 1px solid transparent; padding-bottom: 1px; transition: border-color .2s, color .2s; cursor: pointer; background: transparent; border-top: 0; border-left: 0; border-right: 0; font-size: inherit; }
+.ya-auth-link:hover { border-bottom-color: var(--ya-brown-3); color: var(--ya-brown-1); }
+.ya-auth-signup-row { text-align: center; margin: 24px 0 0; font-size: 14px; color: var(--ya-ink-soft); }
+.ya-auth-error { margin-bottom: 16px; padding: 12px 16px; background: rgba(142,58,24,0.08); border: 1px solid rgba(142,58,24,0.2); border-radius: 12px; color: var(--ya-fix); font-size: 14px; text-align: center; }
+@media (max-width: 980px) {
+  .ya-auth-app { grid-template-columns: 1fr; }
+  .ya-auth-image { min-height: 320px; }
+  .ya-auth-form-pane { padding: 28px 24px 40px; }
+}
+
+/* ===== HOME PAGE (bento grid) ===== */
+.ya-title-block {
+  display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end;
+  margin-bottom: 28px; padding-bottom: 22px; border-bottom: 1px solid var(--ya-rule);
+}
+.ya-title-block h1 {
+  font-family: var(--ya-serif); font-size: clamp(40px, 4.6vw, 64px); font-weight: 400;
+  letter-spacing: -0.014em; line-height: 1.0; margin: 0 0 12px; color: var(--ya-ink); text-wrap: balance;
+}
+.ya-title-block .ya-sub { font-size: 15px; line-height: 1.55; color: var(--ya-ink-soft); max-width: 50ch; margin: 0; }
+.ya-title-block .ya-meta { font-size: 12px; color: var(--ya-muted); text-align: right; line-height: 1.6; font-variant-numeric: tabular-nums; }
+.ya-title-block .ya-meta b { color: var(--ya-ink); font-weight: 600; }
+
+.ya-bento { display: grid; grid-template-columns: repeat(12, 1fr); grid-auto-rows: 140px; gap: 16px; }
+.ya-card {
+  position: relative; overflow: hidden; border-radius: 18px; background: var(--ya-paper-2);
+  border: 1px solid var(--ya-rule); padding: 26px; display: flex; flex-direction: column;
+  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+  color: var(--ya-ink); cursor: pointer;
+}
+.ya-card:hover { transform: translateY(-2px); box-shadow: 0 20px 40px -28px rgba(47,55,39,0.35); border-color: var(--ya-camel); }
+
+.ya-card.hero { grid-column: span 7; grid-row: span 2; padding: 0; background: var(--ya-forest); border-color: var(--ya-forest); color: var(--ya-paper-2); overflow: hidden; }
+.ya-card.hero .ya-photo { position: absolute; inset: 0; background-image: url("/yoga-practice.png"); background-size: cover; background-position: 60% 45%; filter: saturate(0.85) contrast(1.02); }
+.ya-card.hero .ya-photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(47,55,39,0.78) 0%, rgba(47,55,39,0.35) 55%, rgba(47,55,39,0.10) 100%); }
+.ya-card.hero .ya-body { position: relative; z-index: 2; padding: 36px 38px 34px; display: flex; flex-direction: column; justify-content: space-between; height: 100%; }
+.ya-card.hero h2 { font-family: var(--ya-serif); font-size: clamp(40px, 4vw, 58px); font-weight: 400; line-height: 1.0; letter-spacing: -0.012em; margin: 0 0 14px; color: var(--ya-paper-2); text-wrap: balance; }
+.ya-card.hero h2 em { font-style: italic; color: var(--ya-pale-sage); }
+.ya-card.hero .ya-desc { font-size: 15px; line-height: 1.55; color: rgba(236,226,200,0.78); max-width: 36ch; margin: 0 0 24px; }
+.ya-card.hero .ya-cta { display: inline-flex; align-items: center; gap: 12px; font-size: 13px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ya-paper-2); }
+.ya-card.hero .ya-cta .arr { width: 36px; height: 36px; border-radius: 50%; background: var(--ya-paper-2); color: var(--ya-forest); display: grid; place-items: center; transition: transform .25s, background .2s; }
+.ya-card.hero:hover .ya-cta .arr { transform: translateX(4px); background: #fff; }
+.ya-card.hero .ya-cta .arr svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+.ya-card.build { grid-column: span 5; grid-row: span 2; background: linear-gradient(160deg, #cdd1b2 0%, #b8be9b 100%); border-color: rgba(110,118,87,0.28); padding: 30px 32px; justify-content: space-between; }
+.ya-card.build .ya-icon { width: 56px; height: 56px; border-radius: 14px; background: rgba(66,75,54,0.10); border: 1px solid rgba(66,75,54,0.20); display: grid; place-items: center; color: var(--ya-forest); }
+.ya-card.build .ya-icon svg { width: 26px; height: 26px; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.ya-card.build h2 { font-family: var(--ya-serif); font-size: clamp(36px, 3.4vw, 50px); font-weight: 400; line-height: 1.02; letter-spacing: -0.01em; margin: 0 0 12px; color: var(--ya-ink); }
+.ya-card.build h2 em { font-style: italic; color: var(--ya-forest); }
+.ya-card.build .ya-desc { font-size: 15px; line-height: 1.55; color: var(--ya-ink-soft); max-width: 32ch; margin: 0; }
+.ya-card.build .ya-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ya-card.build .ya-pill { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ya-forest); }
+.ya-card.build .ya-pill .arr { width: 28px; height: 28px; border-radius: 50%; background: var(--ya-forest); color: var(--ya-paper-2); display: grid; place-items: center; transition: transform .2s; }
+.ya-card.build:hover .ya-pill .arr { transform: translateX(3px); }
+.ya-card.build .ya-pill svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+.ya-card.small { grid-column: span 4; grid-row: span 1; flex-direction: row; align-items: center; gap: 18px; padding: 22px 24px; }
+.ya-card.small .ya-icon { width: 50px; height: 50px; border-radius: 12px; background: var(--ya-paper); border: 1px solid var(--ya-rule); display: grid; place-items: center; color: var(--ya-olive); flex-shrink: 0; }
+.ya-card.small .ya-icon svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.ya-card.small .ya-text { flex: 1; min-width: 0; }
+.ya-card.small h3 { font-family: var(--ya-serif); font-size: 22px; font-weight: 400; letter-spacing: -0.005em; margin: 0 0 4px; line-height: 1.1; color: var(--ya-ink); }
+.ya-card.small .ya-desc { font-size: 13px; line-height: 1.5; color: var(--ya-ink-soft); margin: 0; }
+.ya-card.small .ya-chev { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; color: var(--ya-muted); transition: transform .2s, color .2s, background .2s; }
+.ya-card.small:hover .ya-chev { color: var(--ya-forest); background: var(--ya-paper); transform: translateX(3px); }
+.ya-card.small .ya-chev svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+@media (max-width: 1100px) {
+  .ya-bento { grid-template-columns: repeat(6, 1fr); }
+  .ya-card.hero { grid-column: span 6; }
+  .ya-card.build { grid-column: span 6; }
+  .ya-card.small { grid-column: span 6; }
+}
+@media (max-width: 720px) {
+  .ya-shell { padding: 22px 22px 40px; }
+  .ya-title-block { grid-template-columns: 1fr; }
+  .ya-title-block .ya-meta { text-align: left; }
+  .ya-card.hero .ya-body { padding: 28px 26px; }
+}

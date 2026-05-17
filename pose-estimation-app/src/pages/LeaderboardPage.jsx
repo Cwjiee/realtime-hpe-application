@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Header } from '../components';
-import { Trophy, Medal, Crown, Loader2, AlertCircle, Users } from 'lucide-react';
 import { API_BASE } from '../config';
 import { useAuth } from '../context/AuthContext';
 
@@ -11,7 +9,6 @@ const LeaderboardPage = ({ onHomeClick }) => {
     const [error, setError] = useState(null);
     const { token } = useAuth();
 
-    // Decode the current user's ID from the JWT to highlight their row
     const currentUserId = (() => {
         if (!token) return null;
         try {
@@ -41,140 +38,166 @@ const LeaderboardPage = ({ onHomeClick }) => {
         fetchLeaderboard();
     }, [selectedPose]);
 
-    const getRankIcon = (rank) => {
-        switch (rank) {
-            case 1:
-                return <Crown className="w-6 h-6 text-yellow-500 fill-yellow-500" />;
-            case 2:
-                return <Medal className="w-6 h-6 text-gray-400 fill-gray-400" />;
-            case 3:
-                return <Medal className="w-6 h-6 text-amber-700 fill-amber-700" />;
-            default:
-                return <span className="text-gray-500 font-bold w-6 text-center">{rank}</span>;
-        }
-    };
+    const filters = [
+        { value: 'all', label: 'Overall' },
+        { value: 'warrior1', label: 'Warrior I' },
+        { value: 'warrior2', label: 'Warrior II' },
+        { value: 'tree', label: 'Tree' },
+        { value: 'triangle', label: 'Triangle' },
+    ];
 
-    const getScoreColor = (score) => {
-        if (score >= 80) return 'text-green-600';
-        if (score >= 50) return 'text-yellow-600';
-        return 'text-red-500';
-    };
+    const top3 = rankings.slice(0, 3);
+    const rest = rankings.slice(3);
+    // Reorder podium: [2nd, 1st, 3rd]
+    const podiumOrder = top3.length >= 3 ? [top3[1], top3[0], top3[2]] : top3;
 
     return (
-        <div className="flex flex-col min-h-screen bg-gradient-to-br from-purple-100 via-white to-purple-200">
-            <Header onHomeClick={onHomeClick} />
+        <div className="ya-page" style={{ overflow: 'hidden' }}>
+            <div className="ya-shell-flex">
+                {/* Top bar */}
+                <header style={{ display: 'flex', alignItems: 'center' }}>
+                    <button className="ya-home-link" onClick={onHomeClick}>
+                        <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+                        Home
+                    </button>
+                </header>
 
-            <div className="flex-1 container mx-auto px-4 py-8 max-w-4xl">
-                <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                {/* Page head */}
+                <section className="ya-page-head">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Leaderboard</h1>
-                        <p className="text-gray-600">See who's mastering the poses</p>
+                        <h1>Leader<em>board</em></h1>
+                        <p className="ya-sub">See who's mastering the poses.</p>
                     </div>
-
-                    <div className="w-full md:w-64">
-                        <select
-                            value={selectedPose}
-                            onChange={(e) => setSelectedPose(e.target.value)}
-                            className="w-full bg-white border border-purple-200 text-gray-700 py-3 px-4 pr-8 rounded-xl leading-tight focus:outline-none focus:bg-white focus:border-purple-500 shadow-sm appearance-none cursor-pointer font-medium"
-                        >
-                            <option value="all">Overall Ranking</option>
-                            <option value="warrior1">Warrior I</option>
-                            <option value="warrior2">Warrior II</option>
-                            <option value="tree">Tree Pose</option>
-                            <option value="triangle">Triangle Pose</option>
-                        </select>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--ya-paper-2)', border: '1px solid var(--ya-rule)', borderRadius: 999, padding: 4 }} role="tablist">
+                        {filters.map(f => (
+                            <button
+                                key={f.value}
+                                onClick={() => setSelectedPose(f.value)}
+                                style={{
+                                    font: 'inherit', fontSize: 12, fontWeight: selectedPose === f.value ? 600 : 500,
+                                    color: selectedPose === f.value ? 'var(--ya-paper-2)' : 'var(--ya-ink-soft)',
+                                    background: selectedPose === f.value ? 'var(--ya-forest)' : 'transparent',
+                                    border: 0, padding: '8px 14px', borderRadius: 999, cursor: 'pointer', letterSpacing: '0.02em',
+                                    transition: 'background .15s, color .15s',
+                                }}
+                            >
+                                {f.label}
+                            </button>
+                        ))}
                     </div>
-                </div>
+                </section>
 
                 {/* Loading */}
                 {loading && (
-                    <div className="flex flex-col items-center justify-center py-20 gap-4">
-                        <Loader2 className="w-10 h-10 text-purple-500 animate-spin" />
-                        <p className="text-gray-500 font-medium">Loading leaderboard...</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: 12 }}>
+                        <div style={{ width: 32, height: 32, border: '3px solid var(--ya-rule)', borderTopColor: 'var(--ya-forest)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                        <p style={{ color: 'var(--ya-muted)', fontSize: 14 }}>Loading leaderboard...</p>
+                        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
                     </div>
                 )}
 
                 {/* Error */}
                 {error && !loading && (
-                    <div className="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 rounded-2xl p-5">
-                        <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
-                        <p>{error}</p>
-                    </div>
+                    <div className="ya-auth-error">{error}</div>
                 )}
 
-                {/* Empty State */}
+                {/* Empty */}
                 {!loading && !error && rankings.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-                        <Users className="w-14 h-14 text-purple-200" />
-                        <h2 className="text-xl font-semibold text-gray-700">No rankings yet</h2>
-                        <p className="text-gray-500">
-                            {selectedPose === 'all'
-                                ? 'Complete a session to appear on the leaderboard.'
-                                : 'No one has completed this pose yet. Be the first!'}
-                        </p>
-                        <button
-                            onClick={onHomeClick}
-                            className="mt-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 px-6 rounded-xl transition-all duration-200 shadow"
-                        >
-                            Start a Session
-                        </button>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: 12, textAlign: 'center' }}>
+                        <p style={{ fontFamily: 'var(--ya-serif)', fontSize: 22, color: 'var(--ya-ink)' }}>No rankings yet</p>
+                        <p style={{ color: 'var(--ya-muted)', fontSize: 14 }}>Complete a session to appear on the leaderboard.</p>
                     </div>
                 )}
 
-                {/* Rankings Table */}
+                {/* Rankings */}
                 {!loading && !error && rankings.length > 0 && (
-                    <div className="bg-white/60 backdrop-blur-sm rounded-3xl shadow-lg border border-white/50 overflow-hidden">
-                        {/* Header */}
-                        <div className="grid grid-cols-12 gap-4 p-4 border-b border-purple-100 bg-purple-50/50 text-sm font-semibold text-gray-600 uppercase tracking-wider">
-                            <div className="col-span-2 text-center">Rank</div>
-                            <div className="col-span-7 md:col-span-8">User</div>
-                            <div className="col-span-3 md:col-span-2 text-right">Score</div>
-                        </div>
+                    <main style={{ flex: 1, minHeight: 0, display: 'grid', gridTemplateRows: 'auto 1fr', gap: 18 }}>
+                        {/* Podium */}
+                        {top3.length >= 3 && (
+                            <section style={{ display: 'grid', gridTemplateColumns: '1fr 1.15fr 1fr', gap: 16, alignItems: 'end' }}>
+                                {podiumOrder.map((user, i) => {
+                                    const isFirst = user.rank === 1;
+                                    const isCurrentUser = currentUserId && user.user_id === currentUserId;
+                                    const rankLabel = user.rank === 1 ? 'Champion' : user.rank === 2 ? 'Second' : 'Third';
+                                    return (
+                                        <article key={user.user_id} style={{
+                                            background: isFirst ? 'linear-gradient(165deg, var(--ya-forest) 0%, var(--ya-forest-deep) 100%)' : 'var(--ya-paper-2)',
+                                            color: isFirst ? 'var(--ya-paper-2)' : 'var(--ya-ink)',
+                                            border: `1px solid ${isFirst ? 'var(--ya-forest-deep)' : 'var(--ya-rule)'}`,
+                                            borderRadius: 18, padding: isFirst ? '28px 22px 24px' : '22px 22px 20px',
+                                            display: 'flex', flexDirection: 'column', gap: 12,
+                                            boxShadow: isFirst ? '0 24px 50px -28px rgba(47,55,39,0.55)' : 'none',
+                                        }}>
+                                            {/* Rank */}
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                                                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 10, letterSpacing: '0.32em', textTransform: 'uppercase', fontWeight: 600, color: isFirst ? 'rgba(236,226,200,0.65)' : 'var(--ya-muted)' }}>
+                                                    <span style={{ fontFamily: 'var(--ya-serif)', fontSize: 28, fontStyle: 'italic', fontWeight: 400, letterSpacing: 0, lineHeight: 0.9, color: isFirst ? 'var(--ya-paper-2)' : user.rank === 2 ? 'var(--ya-silver)' : 'var(--ya-bronze)' }}>{user.rank}</span>
+                                                    <span>{rankLabel}</span>
+                                                </div>
+                                            </div>
+                                            {/* User */}
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                                                <span style={{
+                                                    width: 48, height: 48, borderRadius: '50%',
+                                                    background: isFirst ? 'rgba(236,226,200,0.16)' : 'var(--ya-paper)',
+                                                    border: `1px solid ${isFirst ? 'rgba(236,226,200,0.28)' : 'var(--ya-rule)'}`,
+                                                    display: 'grid', placeItems: 'center', fontFamily: 'var(--ya-serif)',
+                                                    fontSize: 18, fontStyle: 'italic', color: isFirst ? 'var(--ya-paper-2)' : 'var(--ya-brown-2)', flexShrink: 0,
+                                                }}>{user.avatar}</span>
+                                                <div style={{ flex: 1, minWidth: 0 }}>
+                                                    <p style={{ fontFamily: 'var(--ya-serif)', fontSize: 22, fontWeight: 400, letterSpacing: '-0.005em', lineHeight: 1.25, margin: 0, color: isFirst ? 'var(--ya-paper-2)' : 'var(--ya-ink)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                        {user.name}
+                                                        {isCurrentUser && (
+                                                            <span style={{ fontFamily: 'var(--ya-sans)', fontSize: 10, fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase', background: isFirst ? 'rgba(201,204,174,0.95)' : 'var(--ya-pale-sage)', color: isFirst ? 'var(--ya-forest-deep)' : 'var(--ya-forest)', padding: '3px 8px', borderRadius: 999 }}>You</span>
+                                                        )}
+                                                    </p>
+                                                    <p style={{ fontSize: 11, color: isFirst ? 'rgba(236,226,200,0.65)' : 'var(--ya-muted)', margin: '2px 0 0' }}>{user.total_sessions} sessions</p>
+                                                </div>
+                                            </div>
+                                            {/* Score */}
+                                            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12, paddingTop: 10, borderTop: `1px solid ${isFirst ? 'rgba(236,226,200,0.18)' : 'var(--ya-rule)'}` }}>
+                                                <span style={{ fontSize: 10, letterSpacing: '0.28em', textTransform: 'uppercase', color: isFirst ? 'rgba(236,226,200,0.62)' : 'var(--ya-muted)' }}>Score</span>
+                                                <span style={{ fontFamily: 'var(--ya-serif)', fontSize: 30, fontWeight: 400, letterSpacing: '-0.01em', lineHeight: 1, color: isFirst ? 'var(--ya-paper-2)' : 'var(--ya-ink)', fontVariantNumeric: 'tabular-nums' }}>{user.score}%</span>
+                                            </div>
+                                        </article>
+                                    );
+                                })}
+                            </section>
+                        )}
 
-                        {/* List */}
-                        <div className="divide-y divide-purple-50">
-                            {rankings.map((user) => {
-                                const isCurrentUser = currentUserId && user.user_id === currentUserId;
-                                return (
-                                    <div
-                                        key={user.user_id}
-                                        className={`grid grid-cols-12 gap-4 p-4 items-center hover:bg-white/50 transition-colors duration-150 ${
-                                            user.rank === 1 ? 'bg-yellow-50/30' : ''
-                                        } ${isCurrentUser ? 'ring-2 ring-purple-400 ring-inset bg-purple-50/30' : ''}`}
-                                    >
-                                        <div className="col-span-2 flex justify-center">
-                                            <div className={`w-10 h-10 flex items-center justify-center rounded-full ${user.rank <= 3 ? 'bg-white shadow-sm' : ''}`}>
-                                                {user.rank}
-                                            </div>
-                                        </div>
-                                        <div className="col-span-7 md:col-span-8 flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-400 to-pink-400 flex items-center justify-center text-white font-bold shadow-sm text-sm">
-                                                {user.avatar}
-                                            </div>
-                                            <div className="flex flex-col">
-                                                <span className={`font-medium ${user.rank <= 3 ? 'text-gray-900 text-lg' : 'text-gray-700'}`}>
-                                                    {user.name}
-                                                    {isCurrentUser && (
-                                                        <span className="ml-2 text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-semibold">
-                                                            You
-                                                        </span>
-                                                    )}
+                        {/* Table */}
+                        {rest.length > 0 && (
+                            <section style={{ flex: 1, minHeight: 0, background: 'var(--ya-paper-2)', border: '1px solid var(--ya-rule)', borderRadius: 16, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr 140px 140px', alignItems: 'center', padding: '12px 20px', borderBottom: '1px solid var(--ya-rule)', background: 'var(--ya-paper-3)' }}>
+                                    <span style={{ fontSize: 10, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--ya-muted)', fontWeight: 600 }}>Rank</span>
+                                    <span style={{ fontSize: 10, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--ya-muted)', fontWeight: 600 }}>User</span>
+                                    <span style={{ fontSize: 10, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--ya-muted)', fontWeight: 600, textAlign: 'right' }}>Sessions</span>
+                                    <span style={{ fontSize: 10, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--ya-muted)', fontWeight: 600, textAlign: 'right' }}>Score</span>
+                                </div>
+                                <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+                                    {rest.map(user => {
+                                        const isCurrentUser = currentUserId && user.user_id === currentUserId;
+                                        return (
+                                            <div key={user.user_id} style={{ display: 'grid', gridTemplateColumns: '80px 1fr 140px 140px', alignItems: 'center', padding: '12px 20px', borderBottom: '1px solid rgba(196,182,147,0.45)', cursor: 'pointer', transition: 'background .15s' }}>
+                                                <span style={{ fontFamily: 'var(--ya-serif)', fontSize: 22, fontWeight: 400, fontStyle: 'italic', color: 'var(--ya-ink-soft)' }}>{user.rank}</span>
+                                                <span style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                                    <span style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--ya-paper)', border: '1px solid var(--ya-rule)', display: 'grid', placeItems: 'center', fontFamily: 'var(--ya-serif)', fontStyle: 'italic', fontSize: 14, color: 'var(--ya-brown-2)', flexShrink: 0 }}>{user.avatar}</span>
+                                                    <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--ya-ink)', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                                                        {user.name}
+                                                        {isCurrentUser && (
+                                                            <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase', background: 'var(--ya-pale-sage)', color: 'var(--ya-forest)', padding: '2px 7px', borderRadius: 999 }}>You</span>
+                                                        )}
+                                                    </span>
                                                 </span>
-                                                <span className="text-xs text-gray-400">
-                                                    {user.total_sessions} {user.total_sessions === 1 ? 'session' : 'sessions'}
-                                                </span>
+                                                <span style={{ textAlign: 'right', fontSize: 13, color: 'var(--ya-ink-soft)', fontVariantNumeric: 'tabular-nums' }}><b style={{ color: 'var(--ya-ink)', fontWeight: 600 }}>{user.total_sessions}</b></span>
+                                                <span style={{ textAlign: 'right', fontFamily: 'var(--ya-serif)', fontSize: 20, fontWeight: 400, color: 'var(--ya-ink)', fontVariantNumeric: 'tabular-nums' }}>{user.score}%</span>
                                             </div>
-                                        </div>
-                                        <div className="col-span-3 md:col-span-2 text-right">
-                                            <span className={`font-bold text-xl ${getScoreColor(user.score)}`}>
-                                                {user.score}%
-                                            </span>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
+                                        );
+                                    })}
+                                </div>
+                            </section>
+                        )}
+                    </main>
                 )}
             </div>
         </div>
