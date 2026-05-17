@@ -18,7 +18,7 @@ const HomePage = ({ onStartSession, onStartSet, onBuildSet, onLogout, onSessionH
 
     return (
         <div className="ya-page">
-            <div className="ya-shell">
+            <div className="ya-shell" style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 40px)', boxSizing: 'border-box' }}>
                 {/* TOP BAR */}
                 <header className="ya-topbar">
                     <div style={{ width: 44, height: 44, display: 'grid', placeItems: 'center', color: 'var(--ya-forest)' }}>
@@ -130,6 +130,13 @@ const HomePage = ({ onStartSession, onStartSet, onBuildSet, onLogout, onSessionH
                         </span>
                     </div>
                 </section>
+                
+                {/* FOOTER */}
+                <footer style={{ marginTop: 'auto', paddingTop: 24, borderTop: '1px solid var(--ya-rule)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <p style={{ margin: 0, fontSize: 13, color: 'var(--ya-muted)', letterSpacing: '0.02em' }}>
+                        &copy; {today.getFullYear()} Yoga Pose Tracker. All rights reserved.
+                    </p>
+                </footer>
             </div>
         </div>
     );
