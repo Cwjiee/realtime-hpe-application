@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Upload, Play, BarChart3, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE } from '../config';
 
@@ -94,174 +93,164 @@ const UploadVideoPage = ({ onHomeClick }) => {
     };
 
     return (
-        // <div className="flex flex-col min-h-screen bg-gradient-to-br from-purple-100 via-white to-purple-200">
-        <div className="flex flex-col min-h-screen">
-            {/* Header */}
-            <nav className="flex items-center justify-between p-6 px-8">
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={onHomeClick}
-                        className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all duration-200"
-                    >
-                        <ArrowLeft className="w-6 h-6" />
+        <div className="ya-page" style={{ overflow: 'auto' }}>
+            <div className="ya-shell" style={{ maxWidth: 900 }}>
+                {/* Header */}
+                <header style={{ display: 'flex', alignItems: 'center', marginBottom: 24 }}>
+                    <button onClick={onHomeClick} className="ya-home-link">
+                        <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+                        Home
                     </button>
-                    <span className="text-xl font-bold text-gray-800 tracking-tight">
-                        Upload Video
-                    </span>
-                </div>
-            </nav>
+                </header>
 
-            <div className="flex-1 p-8 max-w-5xl mx-auto w-full">
-                {/* Pose Selection */}
-                <div className="mb-6">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Target Pose
-                    </label>
-                    <div className="flex items-center gap-3">
-                        <select
-                            value={selectedPose}
-                            onChange={(e) => setSelectedPose(e.target.value)}
-                            className="w-full max-w-sm bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
-                        >
-                            {poses.map((p) => (
-                                <option key={p} value={p}>
-                                    {p}
-                                </option>
-                            ))}
-                        </select>
-                        <button
-                            onClick={() => setShowReference((v) => !v)}
-                            className={`flex items-center gap-2 px-4 py-3 rounded-xl border transition-all duration-200 text-sm font-medium whitespace-nowrap ${showReference
-                                    ? 'bg-purple-100 border-purple-300 text-purple-700'
-                                    : 'bg-white border-gray-200 text-gray-600 hover:border-purple-300 hover:text-purple-600'
-                                }`}
-                        >
-                            {showReference ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                            {showReference ? 'Hide Reference' : 'Show Reference'}
-                        </button>
+                {/* Title Block */}
+                <div className="ya-title-block">
+                    <div>
+                        <h1 style={{ fontFamily: 'var(--ya-serif)', fontSize: 'clamp(40px, 4.6vw, 64px)', fontWeight: 400, letterSpacing: '-0.014em', lineHeight: 1.0, margin: '0 0 12px', color: 'var(--ya-ink)', textWrap: 'balance' }}>Upload <em style={{ fontStyle: 'italic', color: 'var(--ya-brown-2)' }}>Video</em></h1>
+                        <p style={{ fontSize: 15, lineHeight: 1.55, color: 'var(--ya-ink-soft)', maxWidth: '50ch', margin: 0 }}>Upload a pre-recorded session for detailed pose analysis and scoring.</p>
                     </div>
                 </div>
 
-                {/* Visual Reference */}
-                {showReference && selectedPose && POSE_OUTLINE_MAP[selectedPose] && (
-                    <div className="mb-6 bg-white rounded-2xl shadow-md border border-gray-100 p-4 max-w-sm">
-                        <p className="text-sm font-semibold text-gray-600 mb-3">Reference Pose</p>
-                        <img
-                            src={POSE_OUTLINE_MAP[selectedPose]}
-                            alt={`${selectedPose} reference`}
-                            className="w-full rounded-xl object-contain max-h-80"
-                        />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                    {/* Pose Selection */}
+                    <div style={{ background: 'var(--ya-paper-2)', border: '1px solid var(--ya-rule)', borderRadius: 16, padding: '24px 28px' }}>
+                        <label style={{ display: 'block', fontSize: 11, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--ya-muted)', marginBottom: 12, fontWeight: 500 }}>
+                            Target Pose
+                        </label>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+                            <select
+                                value={selectedPose}
+                                onChange={(e) => setSelectedPose(e.target.value)}
+                                style={{ flex: 1, minWidth: 250, background: 'var(--ya-paper-3)', border: '1px solid var(--ya-rule)', borderRadius: 12, padding: '12px 16px', fontSize: 16, color: 'var(--ya-ink)', outline: 'none', cursor: 'pointer' }}
+                            >
+                                {poses.map((p) => (
+                                    <option key={p} value={p}>{p}</option>
+                                ))}
+                            </select>
+                            <button
+                                onClick={() => setShowReference((v) => !v)}
+                                style={{
+                                    display: 'flex', alignItems: 'center', gap: 8, padding: '12px 20px', borderRadius: 12, fontSize: 14, fontWeight: 500, cursor: 'pointer',
+                                    transition: 'all 0.2s', border: '1px solid var(--ya-rule)', background: showReference ? 'rgba(110,118,87,0.1)' : 'var(--ya-paper-3)',
+                                    color: showReference ? 'var(--ya-forest)' : 'var(--ya-ink-soft)'
+                                }}
+                            >
+                                {showReference ? (
+                                    <svg viewBox="0 0 24 24" style={{ width: 16, height: 16, stroke: 'currentColor', fill: 'none', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }}><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22"/></svg>
+                                ) : (
+                                    <svg viewBox="0 0 24 24" style={{ width: 16, height: 16, stroke: 'currentColor', fill: 'none', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                )}
+                                {showReference ? 'Hide Reference' : 'Show Reference'}
+                            </button>
+                        </div>
                     </div>
-                )}
 
-                {/* Upload Area */}
-                <div
-                    onDrop={handleDrop}
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onClick={() => fileInputRef.current?.click()}
-                    className={`relative cursor-pointer border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-200 mb-6 ${dragActive
-                        ? 'border-purple-500 bg-purple-50'
-                        : 'border-gray-300 bg-white/60 hover:border-purple-400 hover:bg-purple-50/50'
-                        }`}
-                >
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="video/*"
-                        className="hidden"
-                        onChange={(e) => handleFileSelect(e.target.files?.[0])}
-                    />
-                    <Upload className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                    <p className="text-lg font-medium text-gray-600">
-                        {videoFile
-                            ? videoFile.name
-                            : 'Drag & drop a video here, or click to browse'}
-                    </p>
-                    <p className="text-sm text-gray-400 mt-1">
-                        Supports MP4, MOV, AVI, MKV
-                    </p>
-                </div>
-
-                {/* Video Preview */}
-                {videoPreviewUrl && (
-                    <div className="mb-6">
-                        <video
-                            src={videoPreviewUrl}
-                            controls
-                            muted
-                            className="w-full max-w-2xl rounded-2xl shadow-lg border border-gray-100"
-                        />
-                    </div>
-                )}
-
-                {/* Analyze Button */}
-                {videoFile && (
-                    <button
-                        onClick={handleAnalyze}
-                        disabled={isAnalyzing}
-                        className="w-full max-w-2xl flex items-center justify-center gap-3 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white font-semibold py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 mb-8"
-                    >
-                        {isAnalyzing ? (
-                            <>
-                                <Loader2 className="w-5 h-5 animate-spin" />
-                                Analyzing... This may take a while
-                            </>
-                        ) : (
-                            <>
-                                <Play className="w-5 h-5" />
-                                Analyze Pose
-                            </>
-                        )}
-                    </button>
-                )}
-
-                {/* Error */}
-                {error && (
-                    <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 mb-6">
-                        {error}
-                    </div>
-                )}
-
-                {/* Results */}
-                {results && (
-                    <div className="space-y-6">
-                        {/* Score Stats */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <StatCard
-                                label="Average Score"
-                                value={results.avg_score.toFixed(1)}
-                                color="purple"
-                            />
-                            <StatCard
-                                label="Max Score"
-                                value={results.max_score.toFixed(1)}
-                                color="green"
-                            />
-                            <StatCard
-                                label="Min Score"
-                                value={results.min_score.toFixed(1)}
-                                color="orange"
-                            />
-                            <StatCard
-                                label="Frames Analyzed"
-                                value={results.total_frames}
-                                color="blue"
+                    {/* Visual Reference */}
+                    {showReference && selectedPose && POSE_OUTLINE_MAP[selectedPose] && (
+                        <div style={{ background: 'var(--ya-paper-2)', border: '1px solid var(--ya-rule)', borderRadius: 16, padding: '16px', maxWidth: 300 }}>
+                            <p style={{ fontSize: 11, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--ya-muted)', marginBottom: 12, fontWeight: 500 }}>Reference</p>
+                            <img
+                                src={POSE_OUTLINE_MAP[selectedPose]}
+                                alt={`${selectedPose} reference`}
+                                style={{ width: '100%', borderRadius: 10, objectFit: 'contain', maxHeight: 250 }}
                             />
                         </div>
+                    )}
 
-                        {/* Score Chart */}
-                        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-                            <div className="flex items-center gap-2 mb-4">
-                                <BarChart3 className="w-5 h-5 text-purple-600" />
-                                <h3 className="text-lg font-bold text-gray-800">
-                                    Score Over Time
-                                </h3>
+                    {/* Upload Area */}
+                    <div
+                        onDrop={handleDrop}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onClick={() => fileInputRef.current?.click()}
+                        style={{
+                            position: 'relative', cursor: 'pointer', border: `2px dashed ${dragActive ? 'var(--ya-olive)' : 'var(--ya-rule)'}`,
+                            borderRadius: 18, padding: '60px 40px', textAlign: 'center', transition: 'all 0.2s',
+                            background: dragActive ? 'rgba(110,118,87,0.08)' : 'var(--ya-paper-3)',
+                        }}
+                    >
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="video/*"
+                            style={{ display: 'none' }}
+                            onChange={(e) => handleFileSelect(e.target.files?.[0])}
+                        />
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+                            <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--ya-paper-2)', display: 'grid', placeItems: 'center', color: 'var(--ya-olive)' }}>
+                                <svg viewBox="0 0 24 24" style={{ width: 28, height: 28, stroke: 'currentColor', fill: 'none', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                             </div>
-                            <ScoreChart scores={results.scores} fps={results.fps} />
+                            <div>
+                                <p style={{ fontSize: 18, fontFamily: 'var(--ya-serif)', color: 'var(--ya-ink)', margin: '0 0 4px' }}>
+                                    {videoFile ? videoFile.name : 'Drag & drop a video here, or click to browse'}
+                                </p>
+                                <p style={{ fontSize: 13, color: 'var(--ya-muted)', margin: 0 }}>Supports MP4, MOV, AVI, MKV</p>
+                            </div>
                         </div>
                     </div>
-                )}
+
+                    {/* Video Preview */}
+                    {videoPreviewUrl && (
+                        <div style={{ background: 'var(--ya-paper-2)', border: '1px solid var(--ya-rule)', borderRadius: 18, overflow: 'hidden', padding: 8 }}>
+                            <video
+                                src={videoPreviewUrl}
+                                controls
+                                muted
+                                style={{ width: '100%', borderRadius: 10, display: 'block' }}
+                            />
+                        </div>
+                    )}
+
+                    {/* Analyze Button */}
+                    {videoFile && (
+                        <button
+                            onClick={handleAnalyze}
+                            disabled={isAnalyzing}
+                            className="ya-sp-start"
+                            style={{ width: '100%', padding: '20px 30px', fontSize: 16, marginTop: 10 }}
+                        >
+                            {isAnalyzing ? (
+                                <>
+                                    <div className="ya-spinner" style={{ width: 20, height: 20, borderColor: 'var(--ya-paper-2)', borderTopColor: 'transparent' }} />
+                                    Analyzing... This may take a while
+                                </>
+                            ) : (
+                                <>
+                                    <svg viewBox="0 0 24 24" style={{ width: 18, height: 18, stroke: 'currentColor', fill: 'none', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }}><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                    Analyze Pose
+                                </>
+                            )}
+                        </button>
+                    )}
+
+                    {/* Error */}
+                    {error && (
+                        <div style={{ background: 'var(--ya-paper-2)', border: '1px solid var(--ya-fix)', color: 'var(--ya-fix)', borderRadius: 16, padding: 16, textAlign: 'center' }}>
+                            {error}
+                        </div>
+                    )}
+
+                    {/* Results */}
+                    {results && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 24, marginTop: 16 }}>
+                            {/* Score Stats */}
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
+                                <StatCard label="Average Score" value={results.avg_score.toFixed(1)} color="var(--ya-ink)" />
+                                <StatCard label="Max Score" value={results.max_score.toFixed(1)} color="var(--ya-ok)" />
+                                <StatCard label="Min Score" value={results.min_score.toFixed(1)} color="var(--ya-warn)" />
+                                <StatCard label="Frames Analyzed" value={results.total_frames} color="var(--ya-forest)" />
+                            </div>
+
+                            {/* Score Chart */}
+                            <div style={{ background: 'var(--ya-paper-2)', border: '1px solid var(--ya-rule)', borderRadius: 18, padding: '24px 28px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+                                    <h3 style={{ fontFamily: 'var(--ya-serif)', fontSize: 22, fontWeight: 400, margin: 0, color: 'var(--ya-ink)' }}>Score Over <em style={{ fontStyle: 'italic', color: 'var(--ya-brown-2)' }}>Time</em></h3>
+                                </div>
+                                <ScoreChart scores={results.scores} fps={results.fps} />
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
@@ -270,22 +259,13 @@ const UploadVideoPage = ({ onHomeClick }) => {
 /* ─── Sub-components ─── */
 
 const StatCard = ({ label, value, color }) => {
-    const colorMap = {
-        purple: 'from-purple-500 to-purple-600',
-        green: 'from-green-500 to-green-600',
-        orange: 'from-orange-400 to-orange-500',
-        blue: 'from-blue-500 to-blue-600',
-    };
-
     return (
-        <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-5 text-center">
-            <p className="text-sm text-gray-500 mb-1">{label}</p>
-            <p
-                className={`text-3xl font-bold bg-gradient-to-r ${colorMap[color]} bg-clip-text text-transparent`}
-            >
-                {value}
-            </p>
-        </div>
+        <article className="ya-card small">
+            <div className="ya-head">{label}</div>
+            <div className="ya-body" style={{ alignItems: 'flex-start' }}>
+                <div style={{ fontFamily: 'var(--ya-serif)', fontSize: 36, color: color, lineHeight: 1 }}>{value}</div>
+            </div>
+        </article>
     );
 };
 
@@ -321,7 +301,7 @@ const ScoreChart = ({ scores, fps }) => {
     );
 
     return (
-        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto">
+        <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
             {/* Grid lines */}
             {yTicks.map((t) => {
                 const y = pad.top + chartH - (t / 100) * chartH;
@@ -332,14 +312,14 @@ const ScoreChart = ({ scores, fps }) => {
                             x2={pad.left + chartW}
                             y1={y}
                             y2={y}
-                            stroke="#e5e7eb"
+                            stroke="rgba(196,182,147,0.5)"
                             strokeWidth="1"
                         />
                         <text
-                            x={pad.left - 8}
+                            x={pad.left - 12}
                             y={y + 4}
                             textAnchor="end"
-                            className="fill-gray-400"
+                            fill="var(--ya-muted)"
                             fontSize="11"
                         >
                             {t}
@@ -357,7 +337,7 @@ const ScoreChart = ({ scores, fps }) => {
                         x={x}
                         y={height - 8}
                         textAnchor="middle"
-                        className="fill-gray-400"
+                        fill="var(--ya-muted)"
                         fontSize="11"
                     >
                         {t}s
@@ -369,17 +349,11 @@ const ScoreChart = ({ scores, fps }) => {
             <polyline
                 points={polyline}
                 fill="none"
-                stroke="url(#scoreGradient)"
-                strokeWidth="2"
+                stroke="var(--ya-forest)"
+                strokeWidth="2.5"
                 strokeLinejoin="round"
+                strokeLinecap="round"
             />
-
-            <defs>
-                <linearGradient id="scoreGradient" x1="0" x2="1" y1="0" y2="0">
-                    <stop offset="0%" stopColor="#9333ea" />
-                    <stop offset="100%" stopColor="#6366f1" />
-                </linearGradient>
-            </defs>
         </svg>
     );
 };

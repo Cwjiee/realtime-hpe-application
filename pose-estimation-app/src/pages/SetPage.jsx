@@ -1,10 +1,8 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Camera, ChevronRight, Home, CheckCircle2, Loader2, Timer, Activity, Trophy, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react';
 import Webcam from 'react-webcam';
 import { initializePoseLandmarker, detectPose, drawLandmarks, drawGuidanceLandmarks } from '../utils/visionTaskConfig';
 import { computeJointGuidance } from '../utils/angleUtils';
-import { Switch } from "@/components/ui/switch";
 
 // Import yoga pose outline images
 import mountainPose from '../assets/mountain.png';
@@ -389,634 +387,398 @@ const SetPage = ({ onHomeClick }) => {
     const cameraOn = phase !== PHASE.LOADING && phase !== PHASE.SELECT_SET;
     const isSetComplete = phase === PHASE.COMPLETE;
 
-    // Get phase display info
-    const getPhaseInfo = () => {
+    const getScoreColor = (s) => s >= 80 ? 'var(--ya-ok)' : s >= 50 ? 'var(--ya-warn)' : 'var(--ya-fix)';
+    const getScoreBg = (s) => s >= 80 ? 'rgba(110,118,87,0.2)' : s >= 50 ? 'rgba(168,120,46,0.18)' : 'rgba(142,58,24,0.15)';
+
+    const getPhaseLabel = () => {
         switch (phase) {
-            case PHASE.LOADING:
-                return { label: 'Loading Model...', color: 'text-gray-500' };
-            case PHASE.SELECT_SET:
-                return { label: 'Select Routine', color: 'text-indigo-600' };
-            case PHASE.READY:
-                return { label: 'Ready', color: 'text-blue-500' };
-            case PHASE.COUNTDOWN:
-                return { label: 'Get Ready!', color: 'text-yellow-600' };
-            case PHASE.TRACKING:
-                return { label: 'Hold Your Pose!', color: 'text-green-600' };
-            case PHASE.PROCESSING:
-                return { label: 'Analyzing...', color: 'text-purple-600' };
-            case PHASE.RESULTS:
-                return { label: 'Results', color: 'text-blue-600' };
-            case PHASE.COMPLETE:
-                return { label: 'Set Complete!', color: 'text-green-600' };
-            default:
-                return { label: '', color: '' };
+            case PHASE.LOADING: return 'Loading…';
+            case PHASE.SELECT_SET: return 'Select routine';
+            case PHASE.READY: return 'Ready to begin';
+            case PHASE.COUNTDOWN: return 'Get ready!';
+            case PHASE.TRACKING: return 'Hold your pose';
+            case PHASE.PROCESSING: return 'Analysing…';
+            case PHASE.RESULTS: return 'Results';
+            case PHASE.COMPLETE: return 'Set complete!';
+            default: return '';
         }
     };
 
-    const phaseInfo = getPhaseInfo();
-
-    // Helper to get score color
-    const getScoreColor = (score) => {
-        if (score >= 80) return 'text-green-600';
-        if (score >= 50) return 'text-yellow-600';
-        return 'text-red-500';
-    };
-
-    const getScoreBgColor = (score) => {
-        if (score >= 80) return 'bg-green-500';
-        if (score >= 50) return 'bg-yellow-500';
-        return 'bg-red-500';
-    };
-
-    const getScoreGradient = (score) => {
-        if (score >= 80) return 'from-green-400 to-emerald-600';
-        if (score >= 50) return 'from-yellow-400 to-amber-600';
-        return 'from-red-400 to-rose-600';
-    };
-
-    // If set is complete, render the analytics dashboard
+    // ==================== COMPLETE SCREEN ====================
     if (isSetComplete) {
         return (
-            <div className="flex flex-col min-h-screen bg-gradient-to-br from-purple-100 via-white to-purple-200">
-                {/* Header */}
-                <header className="flex items-center justify-between px-6 py-4 bg-white/70 backdrop-blur-md border-b border-purple-200">
-                    <button
-                        onClick={onHomeClick}
-                        className="flex items-center gap-2 text-gray-700 hover:text-purple-600 transition-colors"
-                    >
-                        <Home className="w-5 h-5" />
-                        <span className="font-medium">Home</span>
-                    </button>
-                    <h1 className="text-xl font-bold text-gray-900">Session Analytics</h1>
-                    <div className="w-20" />
-                </header>
+            <div className="ya-page" style={{ overflow: 'auto' }}>
+                <div className="ya-shell" style={{ maxWidth: 900 }}>
+                    <header style={{ display: 'flex', alignItems: 'center', marginBottom: 24 }}>
+                        <button className="ya-home-link" onClick={onHomeClick}>
+                            <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>Home
+                        </button>
+                    </header>
 
-                <div className="flex-1 overflow-y-auto p-6 md:p-8">
-                    <div className="max-w-4xl mx-auto space-y-6">
+                    {analyticsLoading && (
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 0', gap: 12 }}>
+                            <div className="ya-spinner" style={{ width: 36, height: 36 }} />
+                            <p style={{ color: 'var(--ya-muted)', fontSize: 14 }}>Loading your session analytics…</p>
+                        </div>
+                    )}
 
-                        {/* Loading State */}
-                        {analyticsLoading && (
-                            <div className="flex flex-col items-center justify-center py-20 gap-4">
-                                <Loader2 className="w-12 h-12 text-purple-500 animate-spin" />
-                                <p className="text-gray-600 font-medium">Loading your session analytics...</p>
+                    {analytics && !analyticsLoading && (<>
+                        {/* Banner */}
+                        <section style={{ background: 'linear-gradient(165deg, var(--ya-forest) 0%, var(--ya-forest-deep) 100%)', borderRadius: 18, padding: '28px 30px', color: 'var(--ya-paper-2)', marginBottom: 16 }}>
+                            <h2 style={{ fontFamily: 'var(--ya-serif)', fontSize: 28, fontWeight: 400, margin: '0 0 6px' }}>Set <em style={{ fontStyle: 'italic', color: 'var(--ya-pale-sage)' }}>complete!</em></h2>
+                            <p style={{ fontSize: 14, color: 'rgba(236,226,200,0.72)', margin: 0 }}>You completed {analytics.total_poses} poses in this session.</p>
+                        </section>
+
+                        {/* Overall */}
+                        <section style={{ background: 'var(--ya-paper-2)', border: '1px solid var(--ya-rule)', borderRadius: 18, padding: '24px 28px', marginBottom: 14 }}>
+                            <div style={{ fontSize: 10, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--ya-muted)', marginBottom: 8 }}>Overall Average</div>
+                            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 14, marginBottom: 14 }}>
+                                <span style={{ fontFamily: 'var(--ya-serif)', fontSize: 56, fontWeight: 400, lineHeight: 0.9, color: 'var(--ya-ink)' }}>{analytics.overall_avg_score.toFixed(1)}%</span>
+                                <span style={{ fontSize: 13, color: 'var(--ya-muted)', marginBottom: 6 }}>across {analytics.total_poses} poses</span>
                             </div>
-                        )}
-
-                        {/* Analytics Dashboard */}
-                        {analytics && !analyticsLoading && (
-                            <>
-                                {/* Congrats Banner */}
-                                <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl p-6 text-white shadow-xl">
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <h2 className="text-2xl font-bold">Set Complete!</h2>
-                                    </div>
-                                    <p className="text-purple-100">You completed {analytics.total_poses} poses in this session. Here's how you did.</p>
-                                </div>
-
-                                {/* Overall Score */}
-                                <div className="bg-white/60 backdrop-blur-md rounded-2xl p-6 border border-white/50 shadow-lg">
-                                    <div className="text-gray-600 text-sm mb-3 flex items-center gap-2">
-                                        <BarChart3 className="w-4 h-4" />
-                                        Overall Average Score
-                                    </div>
-                                    <div className="flex items-end gap-4">
-                                        <div className={`text-6xl font-bold ${getScoreColor(analytics.overall_avg_score)}`}>
-                                            {analytics.overall_avg_score.toFixed(1)}%
-                                        </div>
-                                        <div className="text-gray-400 text-sm mb-2">
-                                            across {analytics.total_poses} poses
-                                        </div>
-                                    </div>
-                                    {/* Overall score bar */}
-                                    <div className="mt-4 w-full bg-gray-200 rounded-full h-3">
-                                        <div
-                                            className={`h-3 rounded-full bg-gradient-to-r ${getScoreGradient(analytics.overall_avg_score)} transition-all duration-1000 ease-out`}
-                                            style={{ width: `${Math.min(analytics.overall_avg_score, 100)}%` }}
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Best & Worst Pose */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {analytics.best_pose && (
-                                        <div className="bg-white/60 backdrop-blur-md rounded-2xl p-5 border border-green-200 shadow-lg">
-                                            <div className="flex items-center gap-2 text-green-600 mb-3">
-                                                <TrendingUp className="w-5 h-5" />
-                                                <span className="text-sm font-medium">Best Pose</span>
-                                            </div>
-                                            <div className="text-xl font-bold text-gray-900">{analytics.best_pose.name}</div>
-                                            <div className="text-3xl font-bold text-green-600 mt-1">
-                                                {analytics.best_pose.avg_score.toFixed(1)}%
-                                            </div>
-                                        </div>
-                                    )}
-                                    {analytics.worst_pose && (
-                                        <div className="bg-white/60 backdrop-blur-md rounded-2xl p-5 border border-orange-200 shadow-lg">
-                                            <div className="flex items-center gap-2 text-orange-600 mb-3">
-                                                <TrendingDown className="w-5 h-5" />
-                                                <span className="text-sm font-medium">Needs Improvement</span>
-                                            </div>
-                                            <div className="text-xl font-bold text-gray-900">{analytics.worst_pose.name}</div>
-                                            <div className="text-3xl font-bold text-orange-600 mt-1">
-                                                {analytics.worst_pose.avg_score.toFixed(1)}%
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Per-Pose Breakdown */}
-                                <div className="bg-white/60 backdrop-blur-md rounded-2xl p-6 border border-white/50 shadow-lg">
-                                    <h3 className="text-gray-700 font-semibold mb-4">Pose Breakdown</h3>
-                                    <div className="space-y-4">
-                                        {analytics.poses.map((pose, index) => (
-                                            <div key={index} className="bg-white/50 rounded-xl p-4 border border-purple-50">
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <span className="font-semibold text-gray-800">{pose.label}</span>
-                                                    <span className={`text-lg font-bold ${getScoreColor(pose.avg_score)}`}>
-                                                        {pose.avg_score.toFixed(1)}%
-                                                    </span>
-                                                </div>
-                                                {/* Score bar */}
-                                                <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
-                                                    <div
-                                                        className={`h-2.5 rounded-full ${getScoreBgColor(pose.avg_score)} transition-all duration-700 ease-out`}
-                                                        style={{ width: `${Math.min(pose.avg_score, 100)}%` }}
-                                                    />
-                                                </div>
-                                                <div className="flex gap-4 text-xs text-gray-500">
-                                                    <span>Max: <span className="font-medium text-gray-700">{pose.max_score.toFixed(1)}%</span></span>
-                                                    <span>Min: <span className="font-medium text-gray-700">{pose.min_score.toFixed(1)}%</span></span>
-                                                    <span>Frames: <span className="font-medium text-gray-700">{pose.total_frames}</span></span>
-                                                </div>
-                                                {/* Feedback Tips */}
-                                                {pose.feedback && pose.feedback.length > 0 && (
-                                                    <div className="mt-2 pt-2 border-t border-purple-50">
-                                                        <ul className="space-y-1">
-                                                            {pose.feedback.map((tip, tipIdx) => (
-                                                                <li key={tipIdx} className="flex items-start gap-2 text-xs">
-                                                                    <span className={`mt-1 w-1.5 h-1.5 rounded-full shrink-0 ${tip.startsWith('Great') ? 'bg-green-400' : 'bg-amber-400'
-                                                                        }`} />
-                                                                    <span className="text-gray-600">{tip}</span>
-                                                                </li>
-                                                            ))}
-                                                        </ul>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Back to Home */}
-                                <div className="flex justify-center pt-2 pb-4">
-                                    <button
-                                        className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold py-3 px-10 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
-                                        onClick={onHomeClick}
-                                    >
-                                        Back to Home
-                                    </button>
-                                </div>
-                            </>
-                        )}
-
-                        {/* Fallback if no analytics */}
-                        {!analytics && !analyticsLoading && (
-                            <div className="flex flex-col items-center justify-center py-20 gap-4">
-                                <CheckCircle2 className="w-16 h-16 text-green-500" />
-                                <h2 className="text-2xl font-bold text-gray-800">Set Complete!</h2>
-                                <p className="text-gray-500">Great job completing all poses.</p>
-                                <button
-                                    className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-8 rounded-xl transition-all duration-200 shadow-lg"
-                                    onClick={onHomeClick}
-                                >
-                                    Back to Home
-                                </button>
+                            <div style={{ width: '100%', height: 8, background: 'rgba(196,182,147,0.35)', borderRadius: 99, overflow: 'hidden' }}>
+                                <div style={{ height: '100%', borderRadius: 99, background: getScoreColor(analytics.overall_avg_score), width: `${Math.min(analytics.overall_avg_score, 100)}%`, transition: 'width 1s ease-out' }} />
                             </div>
-                        )}
-                    </div>
+                        </section>
+
+                        {/* Best/Worst */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+                            {analytics.best_pose && (
+                                <article style={{ background: 'var(--ya-paper-2)', border: '1px solid rgba(110,118,87,0.25)', borderRadius: 16, padding: '18px 20px' }}>
+                                    <div style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--ya-ok)', marginBottom: 8 }}>Best Pose</div>
+                                    <p style={{ fontFamily: 'var(--ya-serif)', fontSize: 22, fontWeight: 400, margin: '0 0 4px' }}>{analytics.best_pose.name}</p>
+                                    <span style={{ fontFamily: 'var(--ya-serif)', fontSize: 30, color: 'var(--ya-ok)' }}>{analytics.best_pose.avg_score.toFixed(1)}%</span>
+                                </article>
+                            )}
+                            {analytics.worst_pose && (
+                                <article style={{ background: 'var(--ya-paper-2)', border: '1px solid rgba(168,120,46,0.25)', borderRadius: 16, padding: '18px 20px' }}>
+                                    <div style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--ya-warn)', marginBottom: 8 }}>Needs Improvement</div>
+                                    <p style={{ fontFamily: 'var(--ya-serif)', fontSize: 22, fontWeight: 400, margin: '0 0 4px' }}>{analytics.worst_pose.name}</p>
+                                    <span style={{ fontFamily: 'var(--ya-serif)', fontSize: 30, color: 'var(--ya-warn)' }}>{analytics.worst_pose.avg_score.toFixed(1)}%</span>
+                                </article>
+                            )}
+                        </div>
+
+                        {/* Per-Pose */}
+                        <section style={{ background: 'var(--ya-paper-2)', border: '1px solid var(--ya-rule)', borderRadius: 18, padding: '24px 28px', marginBottom: 14 }}>
+                            <h3 style={{ fontFamily: 'var(--ya-serif)', fontSize: 22, fontWeight: 400, margin: '0 0 16px' }}>Pose <em style={{ fontStyle: 'italic', color: 'var(--ya-brown-2)' }}>breakdown</em></h3>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                                {analytics.poses.map((pose, i) => (
+                                    <article key={i} style={{ background: 'var(--ya-paper-3)', border: '1px solid var(--ya-rule)', borderRadius: 14, padding: '16px 18px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                                            <span style={{ fontFamily: 'var(--ya-serif)', fontSize: 18, color: 'var(--ya-ink)' }}>{pose.label}</span>
+                                            <span style={{ fontFamily: 'var(--ya-serif)', fontSize: 22, color: getScoreColor(pose.avg_score) }}>{pose.avg_score.toFixed(1)}%</span>
+                                        </div>
+                                        <div style={{ width: '100%', height: 6, background: 'rgba(196,182,147,0.35)', borderRadius: 99, overflow: 'hidden', marginBottom: 10 }}>
+                                            <div style={{ height: '100%', borderRadius: 99, background: getScoreBg(pose.avg_score), width: `${Math.min(pose.avg_score, 100)}%`, transition: 'width 0.7s ease-out' }} />
+                                        </div>
+                                        <div style={{ display: 'flex', gap: 18, fontSize: 11, color: 'var(--ya-muted)' }}>
+                                            <span>Max: <b style={{ color: 'var(--ya-ink-soft)', fontWeight: 600 }}>{pose.max_score.toFixed(1)}%</b></span>
+                                            <span>Min: <b style={{ color: 'var(--ya-ink-soft)', fontWeight: 600 }}>{pose.min_score.toFixed(1)}%</b></span>
+                                            <span>Frames: <b style={{ color: 'var(--ya-ink-soft)', fontWeight: 600 }}>{pose.total_frames}</b></span>
+                                        </div>
+                                        {pose.feedback && pose.feedback.length > 0 && (
+                                            <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--ya-rule)' }}>
+                                                <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 5 }}>
+                                                    {pose.feedback.map((tip, j) => (
+                                                        <li key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12 }}>
+                                                            <span style={{ width: 5, height: 5, borderRadius: '50%', marginTop: 5, flexShrink: 0, background: tip.startsWith('Great') ? 'var(--ya-ok)' : 'var(--ya-warn)' }} />
+                                                            <span style={{ color: 'var(--ya-ink-soft)' }}>{tip}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
+                                    </article>
+                                ))}
+                            </div>
+                        </section>
+
+                        <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0 24px' }}>
+                            <button className="ya-sp-start" onClick={onHomeClick} style={{ width: 'auto', padding: '14px 40px' }}>Back to Home</button>
+                        </div>
+                    </>)}
+
+                    {!analytics && !analyticsLoading && (
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 0', gap: 12, textAlign: 'center' }}>
+                            <p style={{ fontFamily: 'var(--ya-serif)', fontSize: 28, color: 'var(--ya-ink)' }}>Set <em style={{ fontStyle: 'italic', color: 'var(--ya-brown-2)' }}>complete!</em></p>
+                            <p style={{ color: 'var(--ya-muted)', fontSize: 14 }}>Great job completing all poses.</p>
+                            <button className="ya-sp-start" onClick={onHomeClick} style={{ width: 'auto', padding: '14px 40px', marginTop: 8 }}>Back to Home</button>
+                        </div>
+                    )}
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="flex flex-col min-h-screen bg-gradient-to-br from-purple-100 via-white to-purple-200">
-            {/* Header */}
-            <header className="flex items-center justify-between px-6 py-4 bg-white/70 backdrop-blur-md border-b border-purple-200">
-                <button
-                    onClick={onHomeClick}
-                    className="flex items-center gap-2 text-gray-700 hover:text-purple-600 transition-colors"
-                >
-                    <Home className="w-5 h-5" />
-                    <span className="font-medium">Home</span>
-                </button>
-                <h1 className="text-xl font-bold text-gray-900">Yoga Pose Set</h1>
-                <div className="w-20" /> {/* Spacer for centering */}
-            </header>
+        <div className="ya-page" style={{ overflow: 'hidden' }}>
+            <div className="ya-shell-flex">
+                {/* TOP BAR */}
+                <header className="ya-sp-topbar">
+                    <button className="ya-home-link" onClick={onHomeClick}>
+                        <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>Home
+                    </button>
+                    <h2 className="ya-page-title">Yoga Pose <em>Set</em></h2>
+                    <div className="ya-right-meta">
+                        {cameraOn && <span className="ya-live"><span className="ya-dot-pulse" />Live</span>}
+                        {!cameraOn && <span>{activeSequence.length} poses</span>}
+                    </div>
+                </header>
 
-            {/* Pose Sequence Bar */}
-            <div className="bg-white/50 backdrop-blur-md px-6 py-4 border-b border-purple-200">
-                <div className="flex items-center justify-center gap-2 flex-wrap">
-                    {activeSequence && activeSequence.map((poseItem, index) => (
+                {/* SEQUENCE BREADCRUMB */}
+                <div className="ya-sequence">
+                    {activeSequence.map((poseItem, index) => (
                         <React.Fragment key={index}>
-                            <div
-                                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 ${index === currentPoseIndex && phase !== PHASE.SELECT_SET
-                                    ? 'bg-purple-600 text-white shadow-lg scale-105'
-                                    : completedPoses.includes(index)
-                                        ? 'bg-green-100 text-green-700 border border-green-200'
-                                        : 'bg-white/50 text-gray-500'
-                                    }`}
-                            >
-                                {completedPoses.includes(index) && (
-                                    <CheckCircle2 className="w-4 h-4 text-green-400" />
-                                )}
-                                <span className="font-medium">{poseItem.label}</span>
-                            </div>
+                            <span className={`ya-seq-step ${index === currentPoseIndex && phase !== PHASE.SELECT_SET ? 'active' : ''} ${completedPoses.includes(index) ? 'done' : ''}`}>
+                                <span className="num">{String(index + 1).padStart(2, '0')}</span>
+                                {completedPoses.includes(index) && '✓ '}{poseItem.label}
+                            </span>
                             {index < activeSequence.length - 1 && (
-                                <ChevronRight className="w-5 h-5 text-gray-500" />
+                                <span className="ya-seq-sep"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span>
                             )}
                         </React.Fragment>
                     ))}
                 </div>
-            </div>
 
-            {/* Main Content */}
-            <div className="flex-1 flex flex-col items-center justify-center p-8">
-                <div className="w-full h-[70vh] max-w-8xl bg-white/40 backdrop-blur-md rounded-3xl overflow-hidden shadow-2xl border border-white/50 flex flex-col lg:flex-row">
-                    {/* Camera View */}
-                    {/* Split View Container */}
-                    <div className="flex-1 flex flex-col md:flex-row relative overflow-hidden bg-white/20">
-                        {/* Left: Visual Outline (Reference Pose) - Only shown when enabled */}
-                        {visualOutlineEnabled && (
-                            <div className="flex-1 border-b md:border-b-0 md:border-r border-purple-100 flex items-center justify-center relative p-4 bg-white/30">
-                                <img
-                                    src={currentTargetPose.image}
-                                    alt={`${currentTargetPose.label} reference`}
-                                    className="max-h-full max-w-full object-contain"
-                                />
-                                <div className="absolute top-4 left-4 bg-white/80 backdrop-blur-sm px-3 py-1 rounded-lg text-gray-900 text-sm shadow-sm">
-                                    Reference: {currentTargetPose.label}
-                                </div>
+                {/* MAIN LAYOUT */}
+                <main className="ya-sp-layout">
+                    {/* LEFT — viewer / routine select */}
+                    {phase === PHASE.SELECT_SET ? (
+                        <section style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+                            <div className="ya-routines-head">
+                                <h1>Choose your <em>routine</em></h1>
+                                <span className="ya-count">{1 + customSets.length} sets</span>
                             </div>
-                        )}
-
-                        {/* Right: Camera Feed or Set Selection */}
-                        <div className="flex-1 flex items-center justify-center relative bg-black/5">
-                            {phase === PHASE.SELECT_SET ? (
-                                <div className="absolute inset-0 bg-white/90 backdrop-blur-md overflow-y-auto p-6 md:p-10 flex flex-col items-center">
-                                    <h2 className="text-3xl font-bold text-gray-800 mb-8 mt-4">Choose Your Routine</h2>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
-                                        {/* Default Set Card */}
-                                        <div
-                                            onClick={() => handleSelectSet(poseSequence)}
-                                            className="bg-gradient-to-br from-indigo-50 to-purple-100 rounded-3xl p-6 border-4 border-transparent hover:border-purple-400 cursor-pointer transition-all shadow-md hover:shadow-xl group flex flex-col"
-                                        >
-                                            <div className="flex items-center gap-4 mb-4">
-                                                <h3 className="text-2xl font-bold text-gray-900 group-hover:text-purple-700 transition-colors">Default Flow</h3>
-                                            </div>
-                                            <div className="flex flex-wrap gap-2 mt-auto">
-                                                {poseSequence.map((p, i) => (
-                                                    <span key={i} className="text-xs font-semibold px-2.5 py-1 bg-white/70 text-purple-800 rounded-lg shadow-sm">
-                                                        {i + 1}. {p.label}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        {/* Custom Sets */}
-                                        {fetchingSets ? (
-                                            <div className="flex flex-col items-center justify-center min-h-[200px] bg-white/50 rounded-3xl col-span-1 border border-gray-100">
-                                                <Loader2 className="w-8 h-8 text-purple-400 animate-spin mb-3" />
-                                                <p className="text-sm font-medium text-gray-500">Loading custom sets...</p>
-                                            </div>
-                                        ) : customSets.map((set) => {
-                                            const seq = set.poses.map(poseValue => POSE_INFO[poseValue]).filter(Boolean);
-                                            return (
-                                                <div
-                                                    key={set.set_id}
-                                                    onClick={() => handleSelectSet(seq)}
-                                                    className="bg-white rounded-3xl p-6 border-4 border-transparent hover:border-teal-400 cursor-pointer transition-all shadow-md hover:shadow-xl group flex flex-col"
-                                                >
-                                                    <div className="flex items-center gap-4 mb-4">
-                                                        <h3 className="text-2xl font-bold text-gray-900 group-hover:text-teal-700 transition-colors">{set.name}</h3>
-                                                    </div>
-                                                    <p className="text-gray-500 text-xs mb-6 flex-1">Created on {new Date(set.created_at).toLocaleDateString()}</p>
-                                                    <div className="flex flex-wrap gap-2 mt-auto">
-                                                        {seq.map((p, i) => (
-                                                            <span key={i} className="text-xs font-semibold px-2.5 py-1 bg-teal-50 text-teal-800 rounded-lg shadow-sm border border-teal-100">
-                                                                {i + 1}. {p.label}
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
+                            <div className="ya-routine-grid">
+                                {/* Default */}
+                                <article className={`ya-routine ${activeSequence === poseSequence ? 'selected' : ''}`} onClick={() => handleSelectSet(poseSequence)}>
+                                    <span className="ya-check"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-11"/></svg></span>
+                                    <h3>Default Flow</h3>
+                                    <p className="ya-date">Curated · default sequence</p>
+                                    <div className="ya-poses">
+                                        {poseSequence.map((p, i) => <span key={i} className="ya-pose-tag"><span className="ya-n">{i + 1}</span>{p.label}</span>)}
                                     </div>
-
-                                    {!fetchingSets && customSets.length === 0 && (
-                                        <div className="mt-8 text-center text-gray-500">
-                                            <p className="mb-2">You haven't created any custom sets yet.</p>
-                                            <p>Use the <span className="font-semibold text-purple-600">Build Set</span> tool from the Home page to create personalized routines.</p>
-                                        </div>
-                                    )}
-                                </div>
-                            ) : cameraOn ? (
-                                <>
-                                    <Webcam
-                                        id="video"
-                                        className="absolute inset-0 w-full h-full object-cover"
-                                        ref={webcamRef}
-                                        mirrored={true}
-                                        videoConstraints={{
-                                            facingMode: "user",
-                                            width: 1280,
-                                            height: 720
-                                        }}
-                                    />
-                                    <canvas
-                                        ref={canvasRef}
-                                        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                                        style={{ transform: 'scaleX(-1)' }}
-                                    />
-
-                                    {/* Ready Overlay */}
-                                    {phase === PHASE.READY && (
-                                        <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/40 backdrop-blur-sm">
-                                            <button
-                                                onClick={handleStart}
-                                                className="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-10 rounded-full text-xl shadow-2xl transform transition hover:scale-105 flex items-center gap-3"
-                                            >
-                                                <Camera className="w-7 h-7" />
-                                                Start Pose Set
-                                            </button>
-                                        </div>
-                                    )}
-
-                                    {/* Countdown Overlay */}
-                                    {phase === PHASE.COUNTDOWN && (
-                                        <div className="absolute inset-0 flex items-center justify-center z-10">
-                                            <div className="bg-black/50 backdrop-blur-sm rounded-full w-40 h-40 flex flex-col items-center justify-center animate-pulse">
-                                                <div className="text-white/70 text-sm font-medium mb-1">GET READY</div>
-                                                <div className="text-white text-7xl font-bold tabular-nums drop-shadow-lg"
-                                                    style={{
-                                                        animation: 'countPop 1s ease-in-out infinite',
-                                                    }}
-                                                >
-                                                    {countdown}
-                                                </div>
+                                </article>
+                                {/* Custom */}
+                                {fetchingSets ? (
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 180, background: 'var(--ya-paper-2)', borderRadius: 16, border: '1px solid var(--ya-rule)' }}>
+                                        <div className="ya-spinner" /><span style={{ marginLeft: 12, fontSize: 13, color: 'var(--ya-muted)' }}>Loading sets…</span>
+                                    </div>
+                                ) : customSets.map((set) => {
+                                    const seq = set.poses.map(v => POSE_INFO[v]).filter(Boolean);
+                                    return (
+                                        <article key={set.set_id} className="ya-routine" onClick={() => handleSelectSet(seq)}>
+                                            <span className="ya-check"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-11"/></svg></span>
+                                            <h3>{set.name}</h3>
+                                            <p className="ya-date">Created {new Date(set.created_at).toLocaleDateString()}</p>
+                                            <div className="ya-poses">
+                                                {seq.map((p, i) => <span key={i} className="ya-pose-tag"><span className="ya-n">{i + 1}</span>{p.label}</span>)}
                                             </div>
-                                        </div>
-                                    )}
-
-                                    {/* Tracking Indicator Overlay */}
-                                    {phase === PHASE.TRACKING && (
-                                        <div className="absolute inset-0 z-10 pointer-events-none">
-                                            {/* Pulsing border */}
-                                            <div className="absolute inset-0 border-4 border-green-400 rounded-none"
-                                                style={{ animation: 'borderPulse 1s ease-in-out infinite' }}
-                                            />
-                                            {/* Timer pill at top */}
-                                            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-green-500/90 backdrop-blur-sm rounded-full px-6 py-2 flex items-center gap-2 shadow-lg">
-                                                <Activity className="w-5 h-5 text-white animate-pulse" />
-                                                <span className="text-white font-bold text-lg tabular-nums">{trackingTimeLeft}s</span>
-                                                <span className="text-white/80 text-sm">remaining</span>
-                                            </div>
-                                            {/* Frame counter */}
-                                            <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-sm rounded-lg px-3 py-1.5 text-green-400 text-sm font-mono">
-                                                {collectedFrames.length} frames
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Processing Overlay */}
-                                    {phase === PHASE.PROCESSING && (
-                                        <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/30 backdrop-blur-sm">
-                                            <div className="bg-white/90 backdrop-blur-md rounded-2xl px-8 py-6 flex flex-col items-center gap-3 shadow-xl">
-                                                <Loader2 className="w-10 h-10 text-purple-600 animate-spin" />
-                                                <div className="text-gray-800 font-semibold text-lg">Analyzing your pose...</div>
-                                                <div className="text-gray-500 text-sm">{collectedFrames.length} frames captured</div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </>
-                            ) : (
-                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-                                    <Loader2 className="w-12 h-12 text-purple-400 animate-spin" />
-                                    <p className="text-purple-400 font-medium">Loading pose detection model...</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Side Panel */}
-                    <div className="w-full lg:w-80 bg-white/60 backdrop-blur-md flex flex-col border-t lg:border-t-0 lg:border-l border-purple-100">
-                        <div className="flex-1 flex flex-col gap-4 p-6 overflow-y-auto">
-                            {/* Target Pose Display */}
-                            <div className="bg-purple-600 rounded-xl p-4 shadow-md">
-                                <div className="text-purple-100 text-sm mb-1">Target Pose</div>
-                                <div className="text-white text-2xl font-bold">{currentTargetPose.label}</div>
-                            </div>
-
-                            {/* Phase Status */}
-                            <div className="bg-white/50 rounded-xl p-4 border border-purple-100">
-                                <div className="text-gray-600 text-sm mb-1">Status</div>
-                                <div className={`text-xl font-bold ${phaseInfo.color}`}>
-                                    {phaseInfo.label}
-                                </div>
-                                {phase === PHASE.TRACKING && (
-                                    <div className="mt-2">
-                                        <div className="w-full bg-gray-200 rounded-full h-2">
-                                            <div
-                                                className="bg-green-500 h-2 rounded-full transition-all duration-1000 ease-linear"
-                                                style={{ width: `${((5 - trackingTimeLeft) / 5) * 100}%` }}
-                                            />
-                                        </div>
-                                        <div className="text-gray-500 text-xs mt-1">{collectedFrames.length} frames collected</div>
+                                        </article>
+                                    );
+                                })}
+                                {!fetchingSets && customSets.length === 0 && (
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 180, background: 'var(--ya-paper-2)', borderRadius: 16, border: '1px solid var(--ya-rule)', padding: 24, textAlign: 'center', color: 'var(--ya-muted)', fontSize: 13 }}>
+                                        <p>No custom sets yet.</p>
+                                        <p>Use <b style={{ color: 'var(--ya-forest)' }}>Build Set</b> from Home to create one.</p>
                                     </div>
                                 )}
                             </div>
-
-                            {/* Results Display */}
-                            {phase === PHASE.RESULTS && poseResults && (
-                                <div className="bg-white/50 rounded-xl p-4 border border-purple-100">
-                                    <div className="text-gray-600 text-sm mb-2">Pose Score</div>
-                                    <div className={`text-3xl font-bold ${poseResults.avg_score >= 80 ? 'text-green-600' : poseResults.avg_score >= 50 ? 'text-yellow-600' : 'text-red-500'}`}>
-                                        {poseResults.avg_score?.toFixed(1)}%
+                        </section>
+                    ) : (
+                        <section className="ya-viewer">
+                            {/* Reference outline */}
+                            {visualOutlineEnabled && (
+                                <div style={{ position: 'absolute', inset: 0, display: 'flex', zIndex: 2 }}>
+                                    <div style={{ flex: 1, borderRight: '1px solid rgba(236,226,200,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(248,241,220,0.95)' }}>
+                                        <img src={currentTargetPose.image} alt={`${currentTargetPose.label} reference`} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
+                                        <span className="ya-viewer-tag"><span className="ya-dot" />Reference</span>
                                     </div>
-                                    <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
-                                        <div className="bg-white/60 rounded-lg p-2">
-                                            <div className="text-gray-500 text-xs">Max</div>
-                                            <div className="font-semibold text-gray-800">{poseResults.max_score?.toFixed(1)}%</div>
-                                        </div>
-                                        <div className="bg-white/60 rounded-lg p-2">
-                                            <div className="text-gray-500 text-xs">Min</div>
-                                            <div className="font-semibold text-gray-800">{poseResults.min_score?.toFixed(1)}%</div>
-                                        </div>
-                                        <div className="bg-white/60 rounded-lg p-2 col-span-2">
-                                            <div className="text-gray-500 text-xs">Frames Analyzed</div>
-                                            <div className="font-semibold text-gray-800">{poseResults.total_frames}</div>
-                                        </div>
-                                    </div>
-
-                                    {/* Feedback Tips */}
-                                    {poseResults.feedback && poseResults.feedback.length > 0 && (
-                                        <div className="mt-3 pt-3 border-t border-purple-100">
-                                            <div className="text-gray-600 text-xs font-semibold mb-2">Feedback</div>
-                                            <ul className="space-y-1.5">
-                                                {poseResults.feedback.map((tip, idx) => (
-                                                    <li key={idx} className="flex items-start gap-2 text-sm">
-                                                        <span className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${tip.startsWith('Great') ? 'bg-green-400' : 'bg-amber-400'
-                                                            }`} />
-                                                        <span className="text-gray-700">{tip}</span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* Error Display */}
-                            {error && (
-                                <div className="bg-red-50 rounded-xl p-4 border border-red-200 text-red-700 text-sm">
-                                    {error}
-                                </div>
-                            )}
-
-                            <div className="bg-white/50 rounded-xl p-4 border border-purple-100">
-                                <div className="text-gray-600 text-sm mb-1">Visual Guidance</div>
-                                <div className="flex items-center gap-3">
-                                    <Switch
-                                        checked={visualGuidanceEnabled}
-                                        onCheckedChange={setVisualGuidanceEnabled}
-                                    />
-                                    <span className="text-gray-800 text-sm">
-                                        {visualGuidanceEnabled ? 'On' : 'Off'}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div className="bg-white/50 rounded-xl p-4 border border-purple-100">
-                                <div className="text-gray-600 text-sm mb-1">Visual Outline</div>
-                                <div className="flex items-center gap-3">
-                                    <Switch
-                                        checked={visualOutlineEnabled}
-                                        onCheckedChange={setVisualOutlineEnabled}
-                                    />
-                                    <span className="text-gray-800 text-sm">
-                                        {visualOutlineEnabled ? 'On' : 'Off'}
-                                    </span>
-                                </div>
-                            </div>
-
-                            {/* Live Joint Guidance Panel */}
-                            {visualGuidanceEnabled && liveGuidance && (phase === PHASE.TRACKING || phase === PHASE.COUNTDOWN) && (
-                                <div className="bg-white/50 rounded-xl p-4 border border-purple-100">
-                                    <div className="text-gray-600 text-xs font-semibold mb-2">Joint Guidance</div>
-                                    <div className="space-y-1.5">
-                                        {Object.entries(liveGuidance).map(([joint, { status, error, userAngle, refAngle }]) => {
-                                            const label = joint.replace('_', ' ');
-                                            const statusColor = status === 'good'
-                                                ? 'bg-green-500'
-                                                : status === 'warn'
-                                                    ? 'bg-amber-500'
-                                                    : 'bg-red-500';
-                                            const textColor = status === 'good'
-                                                ? 'text-green-700'
-                                                : status === 'warn'
-                                                    ? 'text-amber-700'
-                                                    : 'text-red-600';
-
-                                            // Generate human-readable hint
-                                            let hint = '✓';
-                                            if (status !== 'good') {
-                                                const diff = userAngle - refAngle;
-                                                if (joint.includes('elbow')) {
-                                                    hint = diff > 0 ? 'Bend more' : 'Straighten';
-                                                } else if (joint.includes('knee')) {
-                                                    hint = diff > 0 ? 'Bend leg' : 'Straighten leg';
-                                                } else if (joint.includes('shoulder')) {
-                                                    hint = diff > 0 ? 'Lower arm' : 'Raise arm';
-                                                } else if (joint.includes('hip')) {
-                                                    hint = diff > 0 ? 'Close hip' : 'Open hip';
-                                                } else {
-                                                    hint = 'Adjust';
-                                                }
-                                            }
-
-                                            return (
-                                                <div key={joint} className="flex items-center gap-2 text-xs">
-                                                    <span className={`w-2 h-2 rounded-full shrink-0 ${statusColor}`} />
-                                                    <span className="capitalize text-gray-700 flex-1">{label}</span>
-                                                    <span className={`font-semibold ${textColor}`}>
-                                                        {hint}
-                                                    </span>
-                                                </div>
-                                            );
-                                        })}
+                                    <div style={{ flex: 1, position: 'relative' }}>
+                                        {cameraOn && <>
+                                            <Webcam id="video" ref={webcamRef} mirrored style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} videoConstraints={{ facingMode: "user", width: 1280, height: 720 }} />
+                                            <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none', transform: 'scaleX(-1)' }} />
+                                        </>}
                                     </div>
                                 </div>
                             )}
+                            {/* Camera (when outline is off) */}
+                            {!visualOutlineEnabled && cameraOn && <>
+                                <Webcam id="video" ref={webcamRef} mirrored style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} videoConstraints={{ facingMode: "user", width: 1280, height: 720 }} />
+                                <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none', transform: 'scaleX(-1)' }} />
+                            </>}
+                            {/* Loading */}
+                            {!cameraOn && <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, color: 'var(--ya-muted)' }}><div className="ya-spinner" /><p style={{ fontSize: 13 }}>Loading pose detection…</p></div>}
+                            {/* Ready */}
+                            {phase === PHASE.READY && (
+                                <div className="ya-ready-overlay">
+                                    <button className="ya-sp-start" onClick={handleStart} style={{ padding: '18px 36px', fontSize: 16 }}>
+                                        <span>Start Pose Set</span>
+                                        <span className="arr"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M13 5l7 7-7 7"/></svg></span>
+                                    </button>
+                                </div>
+                            )}
+                            {/* Countdown */}
+                            {phase === PHASE.COUNTDOWN && (
+                                <div className="ya-countdown-overlay">
+                                    <div className="ya-countdown-circle">
+                                        <div className="ya-countdown-label">Get Ready</div>
+                                        <div className="ya-countdown-number">{countdown}</div>
+                                    </div>
+                                </div>
+                            )}
+                            {/* Tracking */}
+                            {phase === PHASE.TRACKING && (
+                                <div className="ya-tracking-overlay">
+                                    <div className="ya-tracking-border" />
+                                    <div className="ya-tracking-pill"><span className="ya-dot-pulse" />{trackingTimeLeft}s remaining</div>
+                                    <div className="ya-frames-counter">{collectedFrames.length} frames</div>
+                                </div>
+                            )}
+                            {/* Processing */}
+                            {phase === PHASE.PROCESSING && (
+                                <div className="ya-processing-overlay">
+                                    <div className="ya-processing-card">
+                                        <div className="ya-spinner" />
+                                        <div style={{ fontFamily: 'var(--ya-serif)', fontSize: 18, color: 'var(--ya-ink)' }}>Analysing your pose…</div>
+                                        <div style={{ fontSize: 12, color: 'var(--ya-muted)' }}>{collectedFrames.length} frames captured</div>
+                                    </div>
+                                </div>
+                            )}
+                        </section>
+                    )}
 
-                            {/* Progress */}
-                            <div className="bg-white/50 rounded-xl p-4 border border-purple-100">
-                                <div className="text-gray-600 text-sm mb-2">Progress</div>
-                                <div className="flex gap-2">
-                                    {poseSequence.map((_, index) => (
-                                        <div
-                                            key={index}
-                                            className={`flex-1 h-2 rounded-full ${completedPoses.includes(index)
-                                                ? 'bg-green-500'
-                                                : index === currentPoseIndex && phase !== PHASE.SELECT_SET
-                                                    ? 'bg-purple-500'
-                                                    : 'bg-gray-200'
-                                                }`}
-                                        />
-                                    ))}
-                                </div>
-                                <div className="text-gray-600 text-sm mt-2">
-                                    {completedPoses.length} / {activeSequence.length} poses completed
-                                </div>
-                            </div>
+                    {/* RIGHT — sidebar */}
+                    <aside className="ya-sp-sidebar">
+                        {/* Target Pose */}
+                        <div className="ya-sp-target">
+                            <p className="ya-lbl">Target pose</p>
+                            <h3 className="ya-name">{currentTargetPose.label}</h3>
                         </div>
 
-                        {/* Action Buttons */}
-                        <div className="flex gap-3 mt-auto p-6 border-t border-purple-100">
-                            {phase === PHASE.RESULTS && (
+                        {/* Status */}
+                        <div className="ya-sp-status">
+                            <div className="ya-sp-status-head">
+                                <span className="ya-lbl">Status</span>
+                                {phase === PHASE.TRACKING && <span className="ya-countdown">{trackingTimeLeft}s remaining</span>}
+                            </div>
+                            <p className="ya-msg">{phase === PHASE.TRACKING ? <>Hold your <em>pose</em></> : getPhaseLabel()}</p>
+                            {phase === PHASE.TRACKING && (
                                 <>
-                                    <button
-                                        className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 rounded-xl transition-all duration-200"
-                                        onClick={handleRetry}
-                                    >
-                                        Retry
-                                    </button>
-                                    <button
-                                        className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
-                                        onClick={handleNextPose}
-                                    >
-                                        {currentPoseIndex < activeSequence.length - 1 ? 'Next Pose' : 'Finish'}
-                                    </button>
+                                    <div className="ya-frames-bar">
+                                        {Array.from({ length: 30 }).map((_, i) => (
+                                            <span key={i} className={`ya-seg ${i < collectedFrames.length ? 'done' : ''}`} />
+                                        ))}
+                                    </div>
+                                    <div className="ya-frames-foot">
+                                        <span><b>{collectedFrames.length}</b> frames collected</span>
+                                    </div>
                                 </>
                             )}
                         </div>
-                    </div>
-                </div>
-            </div>
 
-            {/* CSS Animations */}
-            <style>{`
-                @keyframes countPop {
-                    0%, 100% { transform: scale(1); }
-                    50% { transform: scale(1.15); }
-                }
-                @keyframes borderPulse {
-                    0%, 100% { border-color: rgba(74, 222, 128, 0.8); }
-                    50% { border-color: rgba(74, 222, 128, 0.3); }
-                }
-            `}</style>
+                        {/* Results */}
+                        {phase === PHASE.RESULTS && poseResults && (
+                            <div className="ya-sp-status">
+                                <div style={{ fontSize: 10, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--ya-muted)', marginBottom: 8 }}>Pose Score</div>
+                                <div style={{ fontFamily: 'var(--ya-serif)', fontSize: 36, color: getScoreColor(poseResults.avg_score), lineHeight: 1, marginBottom: 12 }}>{poseResults.avg_score?.toFixed(1)}%</div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+                                    <div style={{ background: 'var(--ya-paper-3)', borderRadius: 10, padding: '8px 12px' }}><div style={{ fontSize: 10, color: 'var(--ya-muted)', letterSpacing: '0.16em', textTransform: 'uppercase' }}>Max</div><div style={{ fontWeight: 600, color: 'var(--ya-ink)', fontSize: 14 }}>{poseResults.max_score?.toFixed(1)}%</div></div>
+                                    <div style={{ background: 'var(--ya-paper-3)', borderRadius: 10, padding: '8px 12px' }}><div style={{ fontSize: 10, color: 'var(--ya-muted)', letterSpacing: '0.16em', textTransform: 'uppercase' }}>Min</div><div style={{ fontWeight: 600, color: 'var(--ya-ink)', fontSize: 14 }}>{poseResults.min_score?.toFixed(1)}%</div></div>
+                                </div>
+                                <div style={{ background: 'var(--ya-paper-3)', borderRadius: 10, padding: '8px 12px', marginBottom: 4 }}><div style={{ fontSize: 10, color: 'var(--ya-muted)', letterSpacing: '0.16em', textTransform: 'uppercase' }}>Frames</div><div style={{ fontWeight: 600, color: 'var(--ya-ink)', fontSize: 14 }}>{poseResults.total_frames}</div></div>
+                                {poseResults.feedback && poseResults.feedback.length > 0 && (
+                                    <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--ya-rule)' }}>
+                                        <div style={{ fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ya-muted)', marginBottom: 6 }}>Feedback</div>
+                                        <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 5 }}>
+                                            {poseResults.feedback.map((tip, idx) => (
+                                                <li key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12 }}>
+                                                    <span style={{ width: 5, height: 5, borderRadius: '50%', marginTop: 5, flexShrink: 0, background: tip.startsWith('Great') ? 'var(--ya-ok)' : 'var(--ya-warn)' }} />
+                                                    <span style={{ color: 'var(--ya-ink-soft)' }}>{tip}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Error */}
+                        {error && <div className="ya-auth-error">{error}</div>}
+
+                        {/* Toggles */}
+                        <div className="ya-toggle-card">
+                            <div className="ya-toggle-row">
+                                <div className="ya-t-text"><span className="ya-t-title">Visual guidance</span><span className="ya-t-hint">On-screen alignment cues</span></div>
+                                <label className="ya-switch"><input type="checkbox" checked={visualGuidanceEnabled} onChange={e => setVisualGuidanceEnabled(e.target.checked)} /><span className="ya-slider" /></label>
+                            </div>
+                            <div className="ya-toggle-row">
+                                <div className="ya-t-text"><span className="ya-t-title">Visual outline</span><span className="ya-t-hint">Overlay pose silhouette</span></div>
+                                <label className="ya-switch"><input type="checkbox" checked={visualOutlineEnabled} onChange={e => setVisualOutlineEnabled(e.target.checked)} /><span className="ya-slider" /></label>
+                            </div>
+                        </div>
+
+                        {/* Joint Guidance */}
+                        {visualGuidanceEnabled && liveGuidance && (phase === PHASE.TRACKING || phase === PHASE.COUNTDOWN) && (
+                            <div className="ya-joints">
+                                <div className="ya-joints-head">
+                                    <span className="ya-lbl">Joint guidance</span>
+                                    <span className="ya-summary"><b>{Object.values(liveGuidance).filter(j => j.status === 'good').length}</b> of {Object.keys(liveGuidance).length} aligned</span>
+                                </div>
+                                <ul className="ya-joint-list">
+                                    {Object.entries(liveGuidance).map(([joint, { status, userAngle, refAngle }]) => {
+                                        const label = joint.replace('_', ' ');
+                                        let hint = <svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-11"/></svg>;
+                                        if (status !== 'good') {
+                                            const diff = userAngle - refAngle;
+                                            if (joint.includes('elbow')) hint = diff > 0 ? 'Bend more' : 'Straighten';
+                                            else if (joint.includes('knee')) hint = diff > 0 ? 'Bend leg' : 'Straighten leg';
+                                            else if (joint.includes('shoulder')) hint = diff > 0 ? 'Lower arm' : 'Raise arm';
+                                            else if (joint.includes('hip')) hint = diff > 0 ? 'Close hip' : 'Open hip';
+                                            else hint = 'Adjust';
+                                        }
+                                        return (
+                                            <li key={joint} className={`ya-joint ${status}`}>
+                                                <span className="ya-dot" />
+                                                <span className="ya-jname" style={{ textTransform: 'capitalize' }}>{label}</span>
+                                                <span className="ya-verdict">{hint}</span>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            </div>
+                        )}
+
+                        {/* Progress */}
+                        <div className="ya-sp-progress">
+                            <div className="ya-top">
+                                <span className="ya-lbl">Progress</span>
+                                <span className="ya-count">{completedPoses.length} / {activeSequence.length} poses</span>
+                            </div>
+                            <div className="ya-bar">
+                                {activeSequence.map((_, index) => (
+                                    <span key={index} className={`ya-seg ${completedPoses.includes(index) ? 'done' : index === currentPoseIndex && phase !== PHASE.SELECT_SET ? 'active' : ''}`} />
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Actions */}
+                        {phase === PHASE.RESULTS && (
+                            <div className="ya-sp-actions">
+                                <button className="ya-btn-retry" onClick={handleRetry}>Retry</button>
+                                <button className="ya-btn-next" onClick={handleNextPose}>
+                                    {currentPoseIndex < activeSequence.length - 1 ? 'Next Pose' : 'Finish'}
+                                    <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M13 5l7 7-7 7"/></svg>
+                                </button>
+                            </div>
+                        )}
+                    </aside>
+                </main>
+            </div>
         </div>
     );
 };
 
 export default SetPage;
+
