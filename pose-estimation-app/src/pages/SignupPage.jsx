@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE } from '../config';
 
-const SignupPage = ({ onSignup, onHaveAccount }) => {
+const SignupPage = ({ onSignup, onHaveAccount, onBackToLanding }) => {
     const { login } = useAuth();
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -55,6 +55,12 @@ const SignupPage = ({ onSignup, onHaveAccount }) => {
 
                 {/* RIGHT: form */}
                 <section className="ya-auth-form-pane">
+                    <header style={{ marginBottom: 20 }}>
+                        <button onClick={onBackToLanding} className="ya-home-link" style={{ marginLeft: -10 }}>
+                            <svg viewBox="0 0 24 24" style={{ width: 14, height: 14, stroke: 'currentColor', fill: 'none', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' }}><path d="M15 18l-6-6 6-6"/></svg>
+                            Back
+                        </button>
+                    </header>
                     <div className="ya-auth-form-shell">
                         <form className="ya-auth-form" onSubmit={handleSubmit} autoComplete="on" noValidate>
                             <h1 className="ya-auth-h1">Create <em>account</em></h1>

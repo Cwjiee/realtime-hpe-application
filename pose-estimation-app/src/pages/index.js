@@ -9,3 +9,4 @@ export { default as LeaderboardPage } from './LeaderboardPage';
 export { default as UploadVideoPage } from './UploadVideoPage';
 export { default as BuildSetPage } from './BuildSetPage';
 export { default as ProfilePage } from './ProfilePage';
+export { default as LandingPage } from './LandingPage';
