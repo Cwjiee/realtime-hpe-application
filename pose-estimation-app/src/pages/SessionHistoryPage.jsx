@@ -43,6 +43,32 @@ const SessionHistoryPage = ({ onHomeClick, onSessionSelect }) => {
         return { bg: 'rgba(142,58,24,0.08)', color: 'var(--ya-fix)', text: 'Needs work' };
     };
 
+    const avgScore = sessions.length > 0 
+        ? (sessions.reduce((acc, s) => acc + (s.overall_avg_score || 0), 0) / sessions.length).toFixed(1)
+        : 0;
+
+    const streak = React.useMemo(() => {
+        if (!sessions || sessions.length === 0) return 0;
+        const sorted = [...sessions].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        const dates = [...new Set(sorted.map(s => {
+            const d = new Date(s.created_at);
+            return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+        }))];
+        let currentStreak = 0;
+        const todayTime = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()).getTime();
+        if (dates[0] !== todayTime && dates[0] !== todayTime - 86400000) return 0;
+        let expectedDate = dates[0];
+        for (const time of dates) {
+            if (time === expectedDate) {
+                currentStreak++;
+                expectedDate -= 86400000;
+            } else {
+                break;
+            }
+        }
+        return currentStreak;
+    }, [sessions]);
+
     return (
         <div className="ya-page" style={{ overflow: 'hidden' }}>
             <div className="ya-shell-flex">
@@ -54,12 +80,31 @@ const SessionHistoryPage = ({ onHomeClick, onSessionSelect }) => {
                 </header>
 
                 {/* Page head */}
-                <section className="ya-page-head">
+                <section className="ya-page-head" style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'end', gap: 24, paddingBottom: 18, borderBottom: '1px solid var(--ya-rule)' }}>
                     <div>
-                        <h1>Session <em>history</em></h1>
-                        <p className="ya-sub">Track your progress and review past sessions.</p>
+                        <h1 style={{ fontFamily: 'var(--ya-serif)', fontSize: 44, fontWeight: 400, letterSpacing: '-0.014em', lineHeight: 1.0, margin: '0 0 8px', color: 'var(--ya-ink)' }}>Session <em>history</em></h1>
+                        <p className="ya-sub" style={{ fontSize: 13, color: 'var(--ya-ink-soft)', margin: 0 }}>Track your progress and review past sessions.</p>
                     </div>
-                    <span style={{ fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--ya-muted)' }}>{sessions.length} sessions</span>
+                    <div style={{ display: 'flex', gap: 10, alignSelf: 'end' }}>
+                        <div style={{ background: 'var(--ya-paper-2)', border: '1px solid var(--ya-rule)', borderRadius: 14, padding: '10px 16px', display: 'flex', flexDirection: 'column', gap: 2, minWidth: 110 }}>
+                            <span style={{ fontSize: 10, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--ya-muted)' }}>Total</span>
+                            <span style={{ fontFamily: 'var(--ya-serif)', fontSize: 22, fontWeight: 400, letterSpacing: '-0.005em', lineHeight: 1.1, color: 'var(--ya-ink)', fontVariantNumeric: 'tabular-nums' }}>
+                                {sessions.length} <em style={{ fontStyle: 'italic', color: 'var(--ya-brown-2)' }}>sessions</em>
+                            </span>
+                        </div>
+                        <div style={{ background: 'var(--ya-paper-2)', border: '1px solid var(--ya-rule)', borderRadius: 14, padding: '10px 16px', display: 'flex', flexDirection: 'column', gap: 2, minWidth: 110 }}>
+                            <span style={{ fontSize: 10, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--ya-muted)' }}>Avg score</span>
+                            <span style={{ fontFamily: 'var(--ya-serif)', fontSize: 22, fontWeight: 400, letterSpacing: '-0.005em', lineHeight: 1.1, color: 'var(--ya-ink)', fontVariantNumeric: 'tabular-nums' }}>
+                                {avgScore}%
+                            </span>
+                        </div>
+                        <div style={{ background: 'var(--ya-paper-2)', border: '1px solid var(--ya-rule)', borderRadius: 14, padding: '10px 16px', display: 'flex', flexDirection: 'column', gap: 2, minWidth: 110 }}>
+                            <span style={{ fontSize: 10, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--ya-muted)' }}>Streak</span>
+                            <span style={{ fontFamily: 'var(--ya-serif)', fontSize: 22, fontWeight: 400, letterSpacing: '-0.005em', lineHeight: 1.1, color: 'var(--ya-ink)', fontVariantNumeric: 'tabular-nums' }}>
+                                {streak} <em style={{ fontStyle: 'italic', color: 'var(--ya-brown-2)' }}>days</em>
+                            </span>
+                        </div>
+                    </div>
                 </section>
 
                 {/* Loading */}
