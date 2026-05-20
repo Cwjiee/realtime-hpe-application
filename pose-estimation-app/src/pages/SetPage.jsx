@@ -411,7 +411,7 @@ const SetPage = ({ onHomeClick }) => {
                 <div className="ya-shell" style={{ maxWidth: 900 }}>
                     <header style={{ display: 'flex', alignItems: 'center', marginBottom: 24 }}>
                         <button className="ya-home-link" onClick={onHomeClick}>
-                            <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>Home
+                            <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" /></svg>Home
                         </button>
                     </header>
 
@@ -517,7 +517,7 @@ const SetPage = ({ onHomeClick }) => {
                 {/* TOP BAR */}
                 <header className="ya-sp-topbar">
                     <button className="ya-home-link" onClick={onHomeClick}>
-                        <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>Home
+                        <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" /></svg>Home
                     </button>
                     <h2 className="ya-page-title">Yoga Pose <em>Set</em></h2>
                     <div className="ya-right-meta">
@@ -535,7 +535,7 @@ const SetPage = ({ onHomeClick }) => {
                                 {completedPoses.includes(index) && '✓ '}{poseItem.label}
                             </span>
                             {index < activeSequence.length - 1 && (
-                                <span className="ya-seq-sep"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span>
+                                <span className="ya-seq-sep"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></svg></span>
                             )}
                         </React.Fragment>
                     ))}
@@ -553,7 +553,7 @@ const SetPage = ({ onHomeClick }) => {
                             <div className="ya-routine-grid">
                                 {/* Default */}
                                 <article className={`ya-routine ${activeSequence === poseSequence ? 'selected' : ''}`} onClick={() => handleSelectSet(poseSequence)}>
-                                    <span className="ya-check"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-11"/></svg></span>
+                                    <span className="ya-check"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-11" /></svg></span>
                                     <h3>Default Flow</h3>
                                     <p className="ya-date">Curated · default sequence</p>
                                     <div className="ya-poses">
@@ -569,7 +569,7 @@ const SetPage = ({ onHomeClick }) => {
                                     const seq = set.poses.map(v => POSE_INFO[v]).filter(Boolean);
                                     return (
                                         <article key={set.set_id} className="ya-routine" onClick={() => handleSelectSet(seq)}>
-                                            <span className="ya-check"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-11"/></svg></span>
+                                            <span className="ya-check"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-11" /></svg></span>
                                             <h3>{set.name}</h3>
                                             <p className="ya-date">Created {new Date(set.created_at).toLocaleDateString()}</p>
                                             <div className="ya-poses">
@@ -588,23 +588,8 @@ const SetPage = ({ onHomeClick }) => {
                         </section>
                     ) : (
                         <section className="ya-viewer">
-                            {/* Reference outline */}
-                            {visualOutlineEnabled && (
-                                <div style={{ position: 'absolute', inset: 0, display: 'flex', zIndex: 2 }}>
-                                    <div style={{ flex: 1, borderRight: '1px solid rgba(236,226,200,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(248,241,220,0.95)' }}>
-                                        <img src={currentTargetPose.image} alt={`${currentTargetPose.label} reference`} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
-                                        <span className="ya-viewer-tag"><span className="ya-dot" />Reference</span>
-                                    </div>
-                                    <div style={{ flex: 1, position: 'relative' }}>
-                                        {cameraOn && <>
-                                            <Webcam id="video" ref={webcamRef} mirrored style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} videoConstraints={{ facingMode: "user", width: 1280, height: 720 }} />
-                                            <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none', transform: 'scaleX(-1)' }} />
-                                        </>}
-                                    </div>
-                                </div>
-                            )}
-                            {/* Camera (when outline is off) */}
-                            {!visualOutlineEnabled && cameraOn && <>
+                            {/* Camera always gets full space */}
+                            {cameraOn && <>
                                 <Webcam id="video" ref={webcamRef} mirrored style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} videoConstraints={{ facingMode: "user", width: 1280, height: 720 }} />
                                 <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none', transform: 'scaleX(-1)' }} />
                             </>}
@@ -615,7 +600,7 @@ const SetPage = ({ onHomeClick }) => {
                                 <div className="ya-ready-overlay">
                                     <button className="ya-sp-start" onClick={handleStart} style={{ padding: '18px 36px', fontSize: 16 }}>
                                         <span>Start Pose Set</span>
-                                        <span className="arr"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M13 5l7 7-7 7"/></svg></span>
+                                        <span className="arr"><svg viewBox="0 0 24 24"><path d="M5 12h14" /><path d="M13 5l7 7-7 7" /></svg></span>
                                     </button>
                                 </div>
                             )}
@@ -729,7 +714,7 @@ const SetPage = ({ onHomeClick }) => {
                                 <ul className="ya-joint-list">
                                     {Object.entries(liveGuidance).map(([joint, { status, userAngle, refAngle }]) => {
                                         const label = joint.replace('_', ' ');
-                                        let hint = <svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-11"/></svg>;
+                                        let hint = <svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-11" /></svg>;
                                         if (status !== 'good') {
                                             const diff = userAngle - refAngle;
                                             if (joint.includes('elbow')) hint = diff > 0 ? 'Bend more' : 'Straighten';
@@ -763,13 +748,25 @@ const SetPage = ({ onHomeClick }) => {
                             </div>
                         </div>
 
+                        {/* Reference outline sidebar block */}
+                        {visualOutlineEnabled && (
+                            <div className="ya-side-outline">
+                                <div className="ya-side-outline-head">
+                                    <span className="ya-lbl">Reference Outline</span>
+                                </div>
+                                <div className="ya-side-outline-body">
+                                    <img src={currentTargetPose.image} alt={`${currentTargetPose.label} reference`} />
+                                </div>
+                            </div>
+                        )}
+
                         {/* Actions */}
                         {phase === PHASE.RESULTS && (
                             <div className="ya-sp-actions">
                                 <button className="ya-btn-retry" onClick={handleRetry}>Retry</button>
                                 <button className="ya-btn-next" onClick={handleNextPose}>
                                     {currentPoseIndex < activeSequence.length - 1 ? 'Next Pose' : 'Finish'}
-                                    <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M13 5l7 7-7 7"/></svg>
+                                    <svg viewBox="0 0 24 24"><path d="M5 12h14" /><path d="M13 5l7 7-7 7" /></svg>
                                 </button>
                             </div>
                         )}
