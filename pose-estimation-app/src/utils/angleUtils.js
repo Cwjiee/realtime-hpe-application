@@ -134,14 +134,16 @@ function extractJointAngles(norm) {
  *
  * @param {Array<{x:number, y:number}>} landmarkArray – the 33 MediaPipe landmarks for the current frame
  * @param {string} poseKey – one of 'warrior1', 'warrior2', 'tree', 'triangle'
+ * @param {number} videoWidth - Width of the video stream
+ * @param {number} videoHeight - Height of the video stream
  * @returns {Object<string, {status: 'good'|'warn'|'bad', error: number, userAngle: number, refAngle: number}>}
  */
-export function computeJointGuidance(landmarkArray, poseKey) {
+export function computeJointGuidance(landmarkArray, poseKey, videoWidth = 640, videoHeight = 480) {
   const reference = REFERENCE_ANGLES[poseKey];
   if (!reference) return {};
 
-  // Convert MediaPipe landmark objects to simple [x,y] arrays
-  const pts = landmarkArray.map((lm) => [lm.x, lm.y]);
+  // Convert MediaPipe landmark objects to simple [x,y] arrays and un-normalize them
+  const pts = landmarkArray.map((lm) => [lm.x * videoWidth, lm.y * videoHeight]);
 
   const norm = normalizeLandmarks(pts);
   const userAngles = extractJointAngles(norm);

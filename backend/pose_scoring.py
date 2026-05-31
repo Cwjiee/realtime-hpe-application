@@ -221,6 +221,8 @@ def _angle_feedback(joint: str, user_angle: float, ref_angle: float) -> str:
 def generate_pose_feedback(
     frames: list,
     reference_angles: dict,
+    video_width: int,
+    video_height: int,
     tolerance: float = ANGLE_TOLERANCE,
 ) -> list[str]:
     """
@@ -234,6 +236,10 @@ def generate_pose_feedback(
         dicts with ``"x"`` / ``"y"`` keys (when loaded back from MongoDB).
     reference_angles : dict
         Reference joint angles for the target pose.
+    video_width : int
+        Width of the video frame.
+    video_height : int
+        Height of the video frame.
     tolerance : float
         Angle tolerance in degrees.
 
@@ -249,9 +255,9 @@ def generate_pose_feedback(
         try:
             # Support both Pydantic objects and plain dicts
             if hasattr(frame[0], "x"):
-                landmarks_np = np.array([[lm.x, lm.y] for lm in frame])
+                landmarks_np = np.array([[lm.x * video_width, lm.y * video_height] for lm in frame])
             else:
-                landmarks_np = np.array([[lm["x"], lm["y"]] for lm in frame])
+                landmarks_np = np.array([[lm["x"] * video_width, lm["y"] * video_height] for lm in frame])
 
             norm = normalize_landmarks(landmarks_np)
             angles = extract_joint_angles(norm)
@@ -324,6 +330,8 @@ def process_video(video_path: str, reference_angles: dict) -> tuple[list[float],
 
     cap = cv2.VideoCapture(video_path)
     fps = cap.get(cv2.CAP_PROP_FPS)
+    width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+    height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
 
     all_frame_landmarks = []
 
@@ -361,7 +369,7 @@ def process_video(video_path: str, reference_angles: dict) -> tuple[list[float],
             scores_over_time.append(0.0)
             continue
 
-        landmarks_np = np.array([[lm.x, lm.y] for lm in landmarks])
+        landmarks_np = np.array([[lm.x * width, lm.y * height] for lm in landmarks])
         norm_landmarks = normalize_landmarks(landmarks_np)
         angles = extract_joint_angles(norm_landmarks)
         mae = compute_mae(angles, reference_angles)

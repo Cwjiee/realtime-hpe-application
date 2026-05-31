@@ -220,6 +220,8 @@ const SetPage = ({ onHomeClick }) => {
                 body: JSON.stringify({
                     pose_name: currentTargetPose.value,
                     frames: frames,
+                    video_width: webcamRef.current?.video?.videoWidth || 640,
+                    video_height: webcamRef.current?.video?.videoHeight || 480,
                     session_id: sessionId,
                 }),
             });
@@ -322,7 +324,7 @@ const SetPage = ({ onHomeClick }) => {
 
                 // Compute real-time joint guidance when visual guidance is enabled
                 if (visualGuidanceEnabled && currentTargetPose) {
-                    guidance = computeJointGuidance(userLandmarks, currentTargetPose.value);
+                    guidance = computeJointGuidance(userLandmarks, currentTargetPose.value, video.videoWidth, video.videoHeight);
 
                     // Throttle state updates to ~5 Hz to avoid React re-render overhead
                     const now = performance.now();
