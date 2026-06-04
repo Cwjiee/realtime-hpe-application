@@ -63,6 +63,30 @@ const LoginPage = ({ onLogin, onNeedAccount, onBackToLanding }) => {
                             <h1 className="ya-auth-h1">Welcome <em>back</em></h1>
                             <p className="ya-auth-sub">Sign in to continue your journey.</p>
 
+                            {import.meta.env.DEV && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setEmail('weijie@gmail.com');
+                                        setPassword('Cwj0930#');
+                                    }}
+                                    style={{
+                                        marginBottom: 16,
+                                        padding: '6px 12px',
+                                        fontSize: 12,
+                                        borderRadius: 6,
+                                        border: '1px dashed #ccc',
+                                        background: 'rgba(0, 0, 0, 0.05)',
+                                        cursor: 'pointer',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: 6
+                                    }}
+                                >
+                                    ⚡ Autofill Dev Credentials
+                                </button>
+                            )}
+
                             {error && <div className="ya-auth-error">{error}</div>}
 
                             <div className="ya-field">
