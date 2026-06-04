@@ -1,151 +1,161 @@
 import React, { useEffect } from 'react';
-import { Play, Layers, CircleHelp, LogOut, Flower, History, Trophy, Upload, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import Logo from '../../public/logo.png';
 
 const HomePage = ({ onStartSession, onStartSet, onBuildSet, onLogout, onSessionHistory, onLeaderboard, onUploadVideo, onProfile }) => {
     const { isAuthenticated } = useAuth();
 
     useEffect(() => {
         if (!isAuthenticated) {
-            console.log("no")
             onLogout();
         }
-        console.log("yes")
     }, [isAuthenticated, onLogout]);
 
     if (!isAuthenticated) return null;
 
+    const today = new Date();
+    const dayName = today.toLocaleDateString('en-US', { weekday: 'long' });
+    const dateStr = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+
     return (
-        <div className="flex flex-col min-h-screen bg-gradient-to-br from-purple-100 via-white to-purple-200">
-            {/* <div className="flex flex-col min-h-screen"> */}
-            <nav className="flex items-center justify-between p-6 px-8">
-                <div className="flex items-center gap-3">
-                    <div className="border-2 border-purple-600 rounded-lg">
-                        <img src={Logo} alt="Logo" className="w-18 h-18 rounded-lg" />
+        <div className="ya-page">
+            <div className="ya-shell" style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 40px)', boxSizing: 'border-box' }}>
+                {/* TOP BAR */}
+                <header className="ya-topbar">
+                    <div style={{ width: 44, height: 44, display: 'grid', placeItems: 'center', color: 'var(--ya-forest)' }}>
+                        <svg viewBox="0 0 58 55" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%', stroke: 'currentColor', fill: 'none', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
+                            <path d="M36.6979 1C31.6979 1 28.6979 12.5 28.6979 12.5C28.6979 12.5 -4.14854 10.7492 1.6979 20C6.158 27.0572 22.6979 24 22.6979 24L23.1979 31.5C23.1979 31.5 4.1979 46.5 9.6979 52.5C15.1979 58.5 34.6979 31.5 41.6979 33.5C48.6979 35.5 41.6287 52.9588 53.1979 51C53.1979 51 54.8762 38.5502 51.6979 34.5C48.5195 30.4498 45.8735 29.0462 40.6979 27V21.5C40.6979 21.5 51.6979 21.5 56.1979 18.5C60.6979 15.5 41.6979 10.5 41.6979 10.5C41.6979 10.5 41.6979 1 36.6979 1Z" />
+                        </svg>
                     </div>
-                    {/* <span className="text-xl font-bold text-gray-800 tracking-tight">YogaFlow</span> */}
-                </div>
-                <div className="flex items-center gap-3">
-                    <button className="p-2.5 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all duration-200" title="Help">
-                        {/* Help */}
-                        <CircleHelp className="w-6 h-6" />
-                    </button>
-                    <button
-                        onClick={onProfile}
-                        className="p-2.5 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all duration-200"
-                        title="My Profile"
-                    >
-                        <User className="w-6 h-6" />
-                    </button>
-                    <button
-                        onClick={onLogout}
-                        className="p-2.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200"
-                        title="Logout"
-                    >
-                        <LogOut className="w-6 h-6" />
-                    </button>
-                </div>
-            </nav>
+                    <nav className="ya-topnav">
+                        <button title="Help">
+                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 1.5-2.5 2-2.5 4" /><circle cx="12" cy="17" r="0.6" fill="currentColor" /></svg>
+                        </button>
+                        <button title="Profile" onClick={onProfile}>
+                            <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></svg>
+                        </button>
+                        <button title="Sign out" onClick={onLogout}>
+                            <svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" /><path d="M10 17l5-5-5-5" /><path d="M15 12H3" /></svg>
+                        </button>
+                    </nav>
+                </header>
 
-            <div className="flex-1 flex flex-col items-center justify-center p-8 pb-32">
-                <div className="text-center mb-12">
-                    <h1 className="text-5xl font-bold text-gray-900 mb-4">
-                        Yoga Pose Tracker
-                    </h1>
-                    <p className="text-gray-600 text-lg max-w-md mx-auto">
-                        Perfect your practice with AI-powered pose detection and real-time feedback
+                {/* TITLE BLOCK */}
+                <section className="ya-title-block">
+                    <div>
+                        <h1>Yoga Pose Tracker</h1>
+                        <p className="ya-sub">Perfect your practice with AI-powered pose detection and real-time feedback.</p>
+                    </div>
+                    <div className="ya-meta">
+                        <div><b>{dayName}</b>, {dateStr}</div>
+                    </div>
+                </section>
+
+                {/* BENTO GRID */}
+                <section className="ya-bento">
+                    {/* Hero: Start Set */}
+                    <div className="ya-card hero" onClick={onStartSet} role="button" tabIndex={0} aria-label="Start a curated set">
+                        <div className="ya-photo" />
+                        <div className="ya-body">
+                            <div>
+                                <h2>Start <em>Set</em></h2>
+                                <p className="ya-desc">Practice a curated sequence of yoga poses.</p>
+                                <span className="ya-cta">
+                                    Begin practice
+                                    <span className="arr" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24"><path d="M5 12h14" /><path d="M13 5l7 7-7 7" /></svg>
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Build Set */}
+                    <div className="ya-card build" onClick={onBuildSet} role="button" tabIndex={0} aria-label="Build your own set">
+                        <span className="ya-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5 9-5z" /><path d="M3 12l9 5 9-5" /><path d="M3 17l9 5 9-5" /></svg>
+                        </span>
+                        <div>
+                            <h2>Build <em>Set</em></h2>
+                            <p className="ya-desc">Create your own sequence of poses.</p>
+                        </div>
+                        <div className="ya-footer">
+                            <span className="ya-pill">
+                                Compose
+                                <span className="arr" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24"><path d="M5 12h14" /><path d="M13 5l7 7-7 7" /></svg>
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Session History */}
+                    <div className="ya-card small" onClick={onSessionHistory} role="button" tabIndex={0} aria-label="Session history">
+                        <span className="ya-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7" /><path d="M3 4v5h5" /><path d="M12 8v5l3 2" /></svg>
+                        </span>
+                        <div className="ya-text">
+                            <h3>Session History</h3>
+                            <p className="ya-desc">View your past sessions and progress.</p>
+                        </div>
+                        <span className="ya-chev" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></svg>
+                        </span>
+                    </div>
+
+                    {/* Upload Video */}
+                    <div className="ya-card small" onClick={onUploadVideo} role="button" tabIndex={0} aria-label="Upload video">
+                        <span className="ya-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="M17 8l-5-5-5 5" /><path d="M12 3v13" /></svg>
+                        </span>
+                        <div className="ya-text">
+                            <h3>Upload Video</h3>
+                            <p className="ya-desc">Score your yoga pose from a recorded video.</p>
+                        </div>
+                        <span className="ya-chev" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></svg>
+                        </span>
+                    </div>
+
+                    {/* Leaderboard */}
+                    <div className="ya-card small" onClick={onLeaderboard} role="button" tabIndex={0} aria-label="Leaderboard">
+                        <span className="ya-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" style={{ width: 32, height: 32 }}><path d="M8 4h8v5a4 4 0 0 1-8 0V4z" /><path d="M8 6H5v2a3 3 0 0 0 3 3" /><path d="M16 6h3v2a3 3 0 0 1-3 3" /><path d="M10 13h4v3h-4z" /><path d="M8 20h8" /><path d="M12 16v4" /></svg>
+                        </span>
+                        <div className="ya-text">
+                            <h3>Leaderboard</h3>
+                            <p className="ya-desc">Check ranking of everyone's score.</p>
+                        </div>
+                        <span className="ya-chev" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></svg>
+                        </span>
+                    </div>
+
+                    {/* Tip of the Day */}
+                    <div style={{ gridColumn: 'span 8', gridRow: 'span 1', display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 24, padding: '24px 32px', borderRadius: 18, border: '1px dashed var(--ya-rule)', background: 'transparent' }}>
+                        <div>
+                            <h3 style={{ fontFamily: 'var(--ya-serif)', fontSize: 24, fontWeight: 400, margin: '0 0 8px', color: 'var(--ya-ink)' }}>Camera Placement <em>Tip</em></h3>
+                            <p style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--ya-ink-soft)', margin: 0 }}>
+                                For optimal AI pose tracking, position your camera at waist height, about 6-8 feet away. Ensure your entire body remains visible within the frame.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Daily Quote */}
+                    <div style={{ gridColumn: 'span 4', gridRow: 'span 1', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '24px 32px', borderRadius: 18, background: 'rgba(110,118,87,0.06)' }}>
+                        <svg viewBox="0 0 24 24" style={{ width: 24, height: 24, fill: 'var(--ya-olive)', opacity: 0.4, marginBottom: 12 }}><path d="M14 11c0 2.2-1.8 4-4 4-2.2 0-4-1.8-4-4 0-3.3 2.7-6 6-6v2c-2.2 0-4 1.8-4 4h2c2.2 0 4 1.8 4 4zm8 0c0 2.2-1.8 4-4 4-2.2 0-4-1.8-4-4 0-3.3 2.7-6 6-6v2c-2.2 0-4 1.8-4 4h2c2.2 0 4 1.8 4 4z" /></svg>
+                        <p style={{ fontFamily: 'var(--ya-serif)', fontSize: 20, fontStyle: 'italic', lineHeight: 1.4, margin: '0 0 12px', color: 'var(--ya-ink)' }}>
+                            "Yoga is the journey of the self, through the self, to the self."
+                        </p>
+                        <span style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ya-olive)', fontWeight: 600 }}>The Bhagavad Gita</span>
+                    </div>
+                </section>
+
+                {/* FOOTER */}
+                <footer style={{ marginTop: 'auto', paddingTop: 24, borderTop: '1px solid var(--ya-rule)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <p style={{ margin: 0, fontSize: 13, color: 'var(--ya-muted)', letterSpacing: '0.02em' }}>
+                        &copy; {today.getFullYear()} Yoga Pose Tracker. All rights reserved.
                     </p>
-                </div>
-
-                {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6"> */}
-                <div className="grid grid-cols-1 md:grid-cols-6 gap-15">
-                    {/*
-            <button
-                onClick={onStartSession}
-                className="group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-gray-100"
-            >
-                <div className="absolute inset-0 bg-purple-50 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="relative z-10">
-                    <div className="bg-purple-600 w-16 h-16 rounded-xl flex items-center justify-center mb-4">
-                        <Play className="w-8 h-8 text-white" />
-                    </div>
-                    <h3 className="text-2xl font-bold text-gray-800 mb-2">Start Session</h3>
-                    <p className="text-gray-600">Begin tracking your yoga poses with live feedback</p>
-                </div>
-            </button>
-            */}
-
-                    <button
-                        onClick={onStartSet}
-                        className="group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-gray-100 md:col-span-2"
-                    >
-                        <div className="absolute inset-0 bg-teal-50 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <div className="relative z-10 flex flex-col items-center text-center">
-                            <div className="bg-teal-600 w-16 h-16 rounded-xl flex items-center justify-center mb-4 mx-auto">
-                                <Layers className="w-8 h-8 text-white" />
-                            </div>
-                            <h3 className="text-2xl font-bold text-gray-800 mb-2">Start Set</h3>
-                            <p className="text-gray-600">Practice a curated sequence of yoga poses</p>
-                        </div>
-                    </button>
-
-                    <button
-                        onClick={onBuildSet}
-                        className="group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-gray-100 md:col-span-2"
-                    >
-                        <div className="absolute inset-0 bg-teal-50 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <div className="relative z-10 flex flex-col items-center text-center">
-                            <div className="bg-teal-600 w-16 h-16 rounded-xl flex items-center justify-center mb-4 mx-auto">
-                                <Layers className="w-8 h-8 text-white" />
-                            </div>
-                            <h3 className="text-2xl font-bold text-gray-800 mb-2">Build Set</h3>
-                            <p className="text-gray-600">Create your own sequence of poses</p>
-                        </div>
-                    </button>
-
-                    <button
-                        onClick={onLeaderboard}
-                        className="group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-gray-100 md:col-span-2"
-                    >
-                        <div className="absolute inset-0 bg-yellow-50 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <div className="relative z-10 flex flex-col items-center text-center">
-                            <div className="bg-yellow-500 w-16 h-16 rounded-xl flex items-center justify-center mb-4 mx-auto">
-                                <Trophy className="w-8 h-8 text-white" />
-                            </div>
-                            <h3 className="text-2xl font-bold text-gray-800 mb-2">Leaderboard</h3>
-                            <p className="text-gray-600">Check ranking of everyone's score</p>
-                        </div>
-                    </button>
-
-                    <button
-                        onClick={onSessionHistory}
-                        className="group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-gray-100 md:col-span-3"
-                    >
-                        <div className="absolute inset-0 bg-orange-50 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <div className="relative z-10 flex flex-col items-center text-center">
-                            <div className="bg-orange-500 w-16 h-16 rounded-xl flex items-center justify-center mb-4 mx-auto">
-                                <History className="w-8 h-8 text-white" />
-                            </div>
-                            <h3 className="text-2xl font-bold text-gray-800 mb-2">Session History</h3>
-                            <p className="text-gray-600">View your past sessions and progress</p>
-                        </div>
-                    </button>
-
-                    <button
-                        onClick={onUploadVideo}
-                        className="group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-gray-100 md:col-span-3"
-                    >
-                        <div className="absolute inset-0 bg-indigo-50 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <div className="relative z-10 flex flex-col items-center text-center">
-                            <div className="bg-indigo-500 w-16 h-16 rounded-xl flex items-center justify-center mb-4 mx-auto">
-                                <Upload className="w-8 h-8 text-white" />
-                            </div>
-                            <h3 className="text-2xl font-bold text-gray-800 mb-2">Upload Video</h3>
-                            <p className="text-gray-600">Score your yoga pose from a recorded video</p>
-                        </div>
-                    </button>
-                </div>
+                </footer>
             </div>
         </div>
     );

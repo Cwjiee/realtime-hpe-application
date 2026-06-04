@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Mail, Lock, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE } from '../config';
 
-const LoginPage = ({ onLogin, onNeedAccount }) => {
+const LoginPage = ({ onLogin, onNeedAccount, onBackToLanding }) => {
     const { login } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPw, setShowPw] = useState(false);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
 
@@ -43,85 +43,112 @@ const LoginPage = ({ onLogin, onNeedAccount }) => {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-purple-100 via-white to-purple-200 p-8">
-            <div className="w-full max-w-md bg-white/70 backdrop-blur-md rounded-3xl shadow-2xl border border-white/50 p-8">
-                <div className="text-center mb-10">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-                    <p className="text-gray-600">Sign in to continue your yoga journey</p>
-                </div>
+        <div className="ya-auth-page">
+            <div className="ya-auth-app">
+                {/* LEFT: image */}
+                <section className="ya-auth-image">
+                    <div className="ya-auth-photo" />
+                </section>
 
-                {error && (
-                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
-                        <p className="text-sm text-red-600 text-center">{error}</p>
-                    </div>
-                )}
-
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 ml-1">Email</label>
-                        <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <Mail className="h-5 w-5 text-gray-400" />
-                            </div>
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                className="w-full pl-11 pr-4 py-3 bg-white/50 border border-purple-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 placeholder-gray-400 transition-all"
-                                placeholder="you@example.com"
-                                required
-                            />
-                        </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 ml-1">Password</label>
-                        <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <Lock className="h-5 w-5 text-gray-400" />
-                            </div>
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="w-full pl-11 pr-4 py-3 bg-white/50 border border-purple-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 placeholder-gray-400 transition-all"
-                                placeholder="••••••••"
-                                required
-                            />
-                        </div>
-                    </div>
-
-                    <div className="flex items-center justify-between text-sm">
-                        <label className="flex items-center text-gray-600 cursor-pointer">
-                            <input type="checkbox" className="mr-2 rounded text-purple-600 focus:ring-purple-500 border-gray-300" />
-                            Remember me
-                        </label>
-                        <button type="button" className="text-purple-600 hover:text-purple-700 font-medium">
-                            Forgot password?
+                {/* RIGHT: form */}
+                <section className="ya-auth-form-pane">
+                    <header style={{ marginBottom: 20 }}>
+                        <button onClick={onBackToLanding} className="ya-home-link" style={{ marginLeft: -10 }}>
+                            <svg viewBox="0 0 24 24" style={{ width: 14, height: 14, stroke: 'currentColor', fill: 'none', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' }}><path d="M15 18l-6-6 6-6"/></svg>
+                            Back
                         </button>
+                    </header>
+                    <div className="ya-auth-form-shell">
+                        <form className="ya-auth-form" onSubmit={handleSubmit} autoComplete="on" noValidate>
+                            <h1 className="ya-auth-h1">Welcome <em>back</em></h1>
+                            <p className="ya-auth-sub">Sign in to continue your journey.</p>
+
+                            {import.meta.env.DEV && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setEmail('weijie@gmail.com');
+                                        setPassword('Cwj0930#');
+                                    }}
+                                    style={{
+                                        marginBottom: 16,
+                                        padding: '6px 12px',
+                                        fontSize: 12,
+                                        borderRadius: 6,
+                                        border: '1px dashed #ccc',
+                                        background: 'rgba(0, 0, 0, 0.05)',
+                                        cursor: 'pointer',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: 6
+                                    }}
+                                >
+                                    ⚡ Autofill Dev Credentials
+                                </button>
+                            )}
+
+                            {error && <div className="ya-auth-error">{error}</div>}
+
+                            <div className="ya-field">
+                                <label htmlFor="email">Email</label>
+                                <div className="ya-row">
+                                    <input
+                                        id="email"
+                                        name="email"
+                                        type="email"
+                                        placeholder="you@example.com"
+                                        autoComplete="email"
+                                        required
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="ya-field">
+                                <label htmlFor="password">Password</label>
+                                <div className="ya-row">
+                                    <input
+                                        id="password"
+                                        name="password"
+                                        type={showPw ? 'text' : 'password'}
+                                        placeholder="••••••••"
+                                        autoComplete="current-password"
+                                        required
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPw(!showPw)}
+                                        aria-label={showPw ? 'Hide password' : 'Show password'}
+                                        style={{ width: 28, height: 28, display: 'grid', placeItems: 'center', borderRadius: 999, color: 'var(--ya-muted)', cursor: 'pointer', background: 'transparent', border: 0 }}
+                                    >
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+                                            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/>
+                                            <circle cx="12" cy="12" r="3"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="ya-auth-meta">
+                                <span style={{ color: 'var(--ya-ink-soft)', fontSize: 13 }}>Remember me</span>
+                                <button type="button" className="ya-auth-link">Forgot password?</button>
+                            </div>
+
+                            <button className="ya-auth-btn" type="submit" disabled={loading}>
+                                <span>{loading ? 'Centering…' : 'Sign In'}</span>
+                                {!loading && <span className="arr">→</span>}
+                            </button>
+
+                            <p className="ya-auth-signup-row">
+                                Don't have an account?{' '}
+                                <button type="button" className="ya-auth-link" onClick={onNeedAccount}>Sign up</button>
+                            </p>
+                        </form>
                     </div>
-
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 group disabled:opacity-70"
-                    >
-                        <span>{loading ? 'Signing in...' : 'Sign In'}</span>
-                        {!loading && <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
-                    </button>
-                </form>
-
-                <div className="mt-8 text-center">
-                    <p className="text-gray-600">
-                        Don't have an account?{' '}
-                        <button
-                            onClick={onNeedAccount}
-                            className="text-purple-600 hover:text-purple-700 font-semibold transition-colors"
-                        >
-                            Sign Up
-                        </button>
-                    </p>
-                </div>
+                </section>
             </div>
         </div>
     );

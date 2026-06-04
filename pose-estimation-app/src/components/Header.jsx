@@ -1,19 +1,19 @@
 import React from 'react';
-import { Home, Settings } from 'lucide-react';
 
 const Header = ({ onHomeClick }) => (
-    <header className="bg-black bg-opacity-30 backdrop-blur-sm p-4 flex items-center justify-between border-b border-white border-opacity-10">
+    <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px', background: 'var(--ya-forest)', color: 'var(--ya-paper-2)' }}>
         <button
             onClick={onHomeClick}
-            className="flex items-center gap-2 text-white hover:text-purple-300 transition-colors"
+            style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13,
+                color: 'var(--ya-paper-2)', background: 'transparent', border: 0, cursor: 'pointer', fontFamily: 'inherit',
+            }}
         >
-            <Home className="w-5 h-5" />
-            <span className="font-medium">Home</span>
+            <svg viewBox="0 0 24 24" style={{ width: 14, height: 14, stroke: 'currentColor', fill: 'none', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' }}><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg>
+            <span style={{ fontWeight: 500 }}>Home</span>
         </button>
-        <h2 className="text-xl font-bold text-white">Pose Tracking</h2>
-        <button className="text-white hover:text-purple-300 transition-colors">
-            <Settings className="w-5 h-5" />
-        </button>
+        <h2 style={{ fontFamily: 'var(--ya-serif)', fontSize: 18, fontWeight: 400, margin: 0 }}>Pose Tracking</h2>
+        <div style={{ width: 40 }} />
     </header>
 );
 

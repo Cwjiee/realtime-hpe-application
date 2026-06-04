@@ -73,6 +73,8 @@ class Landmark(BaseModel):
 class AnalyzeFramesRequest(BaseModel):
     pose_name: str
     frames: List[List[Landmark]]
+    video_width: int = 640
+    video_height: int = 480
     session_id: Optional[str] = None
 
 
@@ -206,7 +208,7 @@ async def analyze_frames(request: AnalyzeFramesRequest):
 
     scores = []
     for frame_landmarks in request.frames:
-        landmarks_np = np.array([[lm.x, lm.y] for lm in frame_landmarks])
+        landmarks_np = np.array([[lm.x * request.video_width, lm.y * request.video_height] for lm in frame_landmarks])
         try:
             norm_landmarks = normalize_landmarks(landmarks_np)
             angles = extract_joint_angles(norm_landmarks)
@@ -230,7 +232,7 @@ async def analyze_frames(request: AnalyzeFramesRequest):
         except Exception:
             raise HTTPException(status_code=400, detail="Invalid session_id format.")
 
-        feedback = generate_pose_feedback(request.frames, reference_angles)
+        feedback = generate_pose_feedback(request.frames, reference_angles, request.video_width, request.video_height)
 
         pose_record = {
             "pose_name": request.pose_name,

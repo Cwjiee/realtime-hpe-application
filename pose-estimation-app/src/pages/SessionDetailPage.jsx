@@ -1,9 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Header } from '../components';
-import {
-    Home, ChevronLeft, Trophy, TrendingUp, TrendingDown,
-    BarChart3, Loader2, AlertCircle, Calendar, Clock, CheckCircle2
-} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE } from '../config';
 
@@ -19,24 +14,6 @@ const formatTime = (isoString) => {
     return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 };
 
-const getScoreColor = (score) => {
-    if (score >= 80) return 'text-green-600';
-    if (score >= 50) return 'text-yellow-600';
-    return 'text-red-500';
-};
-
-const getScoreBgColor = (score) => {
-    if (score >= 80) return 'bg-green-500';
-    if (score >= 50) return 'bg-yellow-500';
-    return 'bg-red-400';
-};
-
-const getScoreGradient = (score) => {
-    if (score >= 80) return 'from-green-400 to-emerald-600';
-    if (score >= 50) return 'from-yellow-400 to-amber-600';
-    return 'from-red-400 to-rose-600';
-};
-
 const SessionDetailPage = ({ sessionId, onBackClick, onHomeClick }) => {
     const { token } = useAuth();
     const [analytics, setAnalytics] = useState(null);
@@ -46,14 +23,9 @@ const SessionDetailPage = ({ sessionId, onBackClick, onHomeClick }) => {
     useEffect(() => {
         if (!sessionId) return;
         const fetchAnalytics = async () => {
-            setLoading(true);
-            setError(null);
+            setLoading(true); setError(null);
             try {
-                const res = await fetch(`${API_BASE}/api/session/${sessionId}/analytics`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
+                const res = await fetch(`${API_BASE}/api/session/${sessionId}/analytics`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (!res.ok) throw new Error(`Server error: ${res.status}`);
                 const data = await res.json();
                 setAnalytics(data);
@@ -66,174 +38,145 @@ const SessionDetailPage = ({ sessionId, onBackClick, onHomeClick }) => {
         fetchAnalytics();
     }, [sessionId]);
 
+    const getScoreColor = (s) => s >= 80 ? 'var(--ya-ok)' : s >= 50 ? 'var(--ya-warn)' : 'var(--ya-fix)';
+    const getScoreBg = (s) => s >= 80 ? 'rgba(110,118,87,0.2)' : s >= 50 ? 'rgba(168,120,46,0.18)' : 'rgba(142,58,24,0.15)';
+
     return (
-        <div className="flex flex-col min-h-screen bg-gradient-to-br from-purple-100 via-white to-purple-200">
-            {/* Header */}
-            <header className="flex items-center justify-between px-6 py-4 bg-white/70 backdrop-blur-md border-b border-purple-200">
-                <button
-                    onClick={onBackClick}
-                    className="flex items-center gap-2 text-gray-700 hover:text-purple-600 transition-colors"
-                >
-                    <ChevronLeft className="w-5 h-5" />
-                    <span className="font-medium">History</span>
-                </button>
-                <h1 className="text-xl font-bold text-gray-900">Session Details</h1>
-                <button
-                    onClick={onHomeClick}
-                    className="flex items-center gap-2 text-gray-700 hover:text-purple-600 transition-colors"
-                >
-                    <Home className="w-5 h-5" />
-                    <span className="font-medium">Home</span>
-                </button>
-            </header>
+        <div className="ya-page" style={{ overflow: 'hidden' }}>
+            <div className="ya-shell-flex">
+                {/* Top bar */}
+                <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <button className="ya-home-link" onClick={onBackClick}>
+                        <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>History
+                    </button>
+                    <button className="ya-home-link" onClick={onHomeClick}>
+                        <svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg>
+                        Home
+                    </button>
+                </header>
 
-            <div className="flex-1 overflow-y-auto p-6 md:p-8">
-                <div className="max-w-3xl mx-auto space-y-5">
+                {/* Loading */}
+                {loading && (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: 12 }}>
+                        <div style={{ width: 32, height: 32, border: '3px solid var(--ya-rule)', borderTopColor: 'var(--ya-forest)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                        <p style={{ color: 'var(--ya-muted)', fontSize: 14 }}>Loading session details...</p>
+                        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                    </div>
+                )}
 
-                    {/* Loading */}
-                    {loading && (
-                        <div className="flex flex-col items-center justify-center py-20 gap-4">
-                            <Loader2 className="w-10 h-10 text-purple-500 animate-spin" />
-                            <p className="text-gray-500 font-medium">Loading session details...</p>
-                        </div>
-                    )}
+                {/* Error */}
+                {error && !loading && <div className="ya-auth-error">{error}</div>}
 
-                    {/* Error */}
-                    {error && !loading && (
-                        <div className="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 rounded-2xl p-5">
-                            <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
-                            <p>{error}</p>
-                        </div>
-                    )}
-
-                    {analytics && !loading && (
-                        <>
-                            {/* Session Meta */}
-                            <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl p-6 text-white shadow-xl">
-                                <div className="flex items-center gap-3 mb-3">
-                                    <CheckCircle2 className="w-7 h-7 text-green-300" />
-                                    <h2 className="text-xl font-bold">Completed Session</h2>
-                                </div>
-                                <div className="flex flex-wrap gap-5 text-purple-100 text-sm">
-                                    <div className="flex items-center gap-1.5">
-                                        <Calendar className="w-4 h-4" />
-                                        {formatDate(analytics.created_at)}
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                        <Clock className="w-4 h-4" />
-                                        {formatTime(analytics.created_at)}
-                                    </div>
-                                </div>
+                {/* Content */}
+                {analytics && !loading && (
+                    <main style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 24 }}>
+                        {/* Session header card */}
+                        <section style={{ background: 'linear-gradient(165deg, var(--ya-forest) 0%, var(--ya-forest-deep) 100%)', borderRadius: 18, padding: '28px 30px', color: 'var(--ya-paper-2)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                                <svg viewBox="0 0 24 24" style={{ width: 20, height: 20, stroke: 'var(--ya-pale-sage)', fill: 'none', strokeWidth: 1.6, strokeLinecap: 'round', strokeLinejoin: 'round' }}><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
+                                <span style={{ fontFamily: 'var(--ya-serif)', fontSize: 22, fontWeight: 400 }}>Completed Session</span>
                             </div>
-
-                            {/* Overall Score */}
-                            <div className="bg-white/60 backdrop-blur-md rounded-2xl p-6 border border-white/50 shadow-lg">
-                                <div className="text-gray-500 text-sm mb-3 flex items-center gap-2">
-                                    <BarChart3 className="w-4 h-4" /> Overall Average Score
-                                </div>
-                                <div className="flex items-end gap-3">
-                                    <div className={`text-6xl font-bold ${getScoreColor(analytics.overall_avg_score)}`}>
-                                        {analytics.overall_avg_score.toFixed(1)}%
-                                    </div>
-                                    <div className="text-gray-400 text-sm mb-2">
-                                        across {analytics.total_poses} pose{analytics.total_poses !== 1 ? 's' : ''}
-                                    </div>
-                                </div>
-                                <div className="mt-4 w-full bg-gray-200 rounded-full h-3">
-                                    <div
-                                        className={`h-3 rounded-full bg-gradient-to-r ${getScoreGradient(analytics.overall_avg_score)} transition-all duration-1000 ease-out`}
-                                        style={{ width: `${Math.min(analytics.overall_avg_score, 100)}%` }}
-                                    />
-                                </div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 18, fontSize: 13, color: 'rgba(236,226,200,0.7)' }}>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                    <svg viewBox="0 0 24 24" style={{ width: 14, height: 14, stroke: 'currentColor', fill: 'none', strokeWidth: 1.6, strokeLinecap: 'round' }}><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                                    {formatDate(analytics.created_at)}
+                                </span>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                    <svg viewBox="0 0 24 24" style={{ width: 14, height: 14, stroke: 'currentColor', fill: 'none', strokeWidth: 1.6, strokeLinecap: 'round' }}><circle cx="12" cy="12" r="9"/><path d="M12 7v5l2.5 2.5"/></svg>
+                                    {formatTime(analytics.created_at)}
+                                </span>
                             </div>
+                        </section>
 
-                            {/* Best & Worst */}
-                            {analytics.total_poses > 0 && (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {analytics.best_pose && (
-                                        <div className="bg-white/60 backdrop-blur-md rounded-2xl p-5 border border-green-200 shadow-lg">
-                                            <div className="flex items-center gap-2 text-green-600 mb-2">
-                                                <TrendingUp className="w-5 h-5" />
-                                                <span className="text-sm font-medium">Best Pose</span>
-                                            </div>
-                                            <div className="text-xl font-bold text-gray-900">{analytics.best_pose.name}</div>
-                                            <div className="text-3xl font-bold text-green-600 mt-1">
-                                                {analytics.best_pose.avg_score.toFixed(1)}%
-                                            </div>
-                                        </div>
-                                    )}
-                                    {analytics.worst_pose && (
-                                        <div className="bg-white/60 backdrop-blur-md rounded-2xl p-5 border border-orange-200 shadow-lg">
-                                            <div className="flex items-center gap-2 text-orange-600 mb-2">
-                                                <TrendingDown className="w-5 h-5" />
-                                                <span className="text-sm font-medium">Needs Improvement</span>
-                                            </div>
-                                            <div className="text-xl font-bold text-gray-900">{analytics.worst_pose.name}</div>
-                                            <div className="text-3xl font-bold text-orange-600 mt-1">
-                                                {analytics.worst_pose.avg_score.toFixed(1)}%
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
+                        {/* Overall score */}
+                        <section style={{ background: 'var(--ya-paper-2)', border: '1px solid var(--ya-rule)', borderRadius: 18, padding: '24px 28px' }}>
+                            <div style={{ fontSize: 10, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--ya-muted)', marginBottom: 8 }}>Overall Average Score</div>
+                            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 14, marginBottom: 14 }}>
+                                <span style={{ fontFamily: 'var(--ya-serif)', fontSize: 56, fontWeight: 400, lineHeight: 0.9, color: 'var(--ya-ink)', fontVariantNumeric: 'tabular-nums' }}>
+                                    {analytics.overall_avg_score.toFixed(1)}%
+                                </span>
+                                <span style={{ fontSize: 13, color: 'var(--ya-muted)', marginBottom: 6 }}>across {analytics.total_poses} pose{analytics.total_poses !== 1 ? 's' : ''}</span>
+                            </div>
+                            <div style={{ width: '100%', height: 8, background: 'rgba(196,182,147,0.35)', borderRadius: 99, overflow: 'hidden' }}>
+                                <div style={{ height: '100%', borderRadius: 99, background: getScoreColor(analytics.overall_avg_score), width: `${Math.min(analytics.overall_avg_score, 100)}%`, transition: 'width 1s ease-out' }} />
+                            </div>
+                        </section>
 
-                            {/* Per-Pose Breakdown */}
-                            <div className="bg-white/60 backdrop-blur-md rounded-2xl p-6 border border-white/50 shadow-lg">
-                                <h3 className="text-gray-700 font-semibold mb-4">Pose Breakdown</h3>
-                                {analytics.poses.length === 0 ? (
-                                    <p className="text-gray-400 text-sm italic">No pose data available.</p>
-                                ) : (
-                                    <div className="space-y-4">
-                                        {analytics.poses.map((pose, index) => (
-                                            <div key={index} className="bg-white/50 rounded-xl p-4 border border-purple-50">
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <span className="font-semibold text-gray-800">{pose.label}</span>
-                                                    <span className={`text-lg font-bold ${getScoreColor(pose.avg_score)}`}>
-                                                        {pose.avg_score.toFixed(1)}%
-                                                    </span>
-                                                </div>
-                                                <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
-                                                    <div
-                                                        className={`h-2.5 rounded-full ${getScoreBgColor(pose.avg_score)} transition-all duration-700 ease-out`}
-                                                        style={{ width: `${Math.min(pose.avg_score, 100)}%` }}
-                                                    />
-                                                </div>
-                                                <div className="flex gap-4 text-xs text-gray-500">
-                                                    <span>Max: <span className="font-medium text-gray-700">{pose.max_score.toFixed(1)}%</span></span>
-                                                    <span>Min: <span className="font-medium text-gray-700">{pose.min_score.toFixed(1)}%</span></span>
-                                                    <span>Frames: <span className="font-medium text-gray-700">{pose.total_frames}</span></span>
-                                                </div>
-                                                {/* Feedback Tips */}
-                                                {pose.feedback && pose.feedback.length > 0 && (
-                                                    <div className="mt-2 pt-2 border-t border-purple-50">
-                                                        <ul className="space-y-1">
-                                                            {pose.feedback.map((tip, tipIdx) => (
-                                                                <li key={tipIdx} className="flex items-start gap-2 text-xs">
-                                                                    <span className={`mt-1 w-1.5 h-1.5 rounded-full shrink-0 ${
-                                                                        tip.startsWith('Great') ? 'bg-green-400' : 'bg-amber-400'
-                                                                    }`} />
-                                                                    <span className="text-gray-600">{tip}</span>
-                                                                </li>
-                                                            ))}
-                                                        </ul>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
+                        {/* Best & Worst */}
+                        {analytics.total_poses > 0 && (
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                                {analytics.best_pose && (
+                                    <article style={{ background: 'var(--ya-paper-2)', border: '1px solid rgba(110,118,87,0.25)', borderRadius: 16, padding: '18px 20px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--ya-ok)', marginBottom: 8 }}>
+                                            <svg viewBox="0 0 24 24" style={{ width: 16, height: 16, stroke: 'currentColor', fill: 'none', strokeWidth: 1.6, strokeLinecap: 'round', strokeLinejoin: 'round' }}><path d="M22 7l-10 10-4-4"/><path d="M16 7l-4 4"/></svg>
+                                            <span style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600 }}>Best Pose</span>
+                                        </div>
+                                        <p style={{ fontFamily: 'var(--ya-serif)', fontSize: 22, fontWeight: 400, margin: '0 0 4px', color: 'var(--ya-ink)' }}>{analytics.best_pose.name}</p>
+                                        <span style={{ fontFamily: 'var(--ya-serif)', fontSize: 30, fontWeight: 400, color: 'var(--ya-ok)' }}>{analytics.best_pose.avg_score.toFixed(1)}%</span>
+                                    </article>
+                                )}
+                                {analytics.worst_pose && (
+                                    <article style={{ background: 'var(--ya-paper-2)', border: '1px solid rgba(168,120,46,0.25)', borderRadius: 16, padding: '18px 20px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--ya-warn)', marginBottom: 8 }}>
+                                            <svg viewBox="0 0 24 24" style={{ width: 16, height: 16, stroke: 'currentColor', fill: 'none', strokeWidth: 1.6, strokeLinecap: 'round', strokeLinejoin: 'round' }}><path d="M12 5v9"/><circle cx="12" cy="18" r="0.6" fill="currentColor"/></svg>
+                                            <span style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600 }}>Needs Improvement</span>
+                                        </div>
+                                        <p style={{ fontFamily: 'var(--ya-serif)', fontSize: 22, fontWeight: 400, margin: '0 0 4px', color: 'var(--ya-ink)' }}>{analytics.worst_pose.name}</p>
+                                        <span style={{ fontFamily: 'var(--ya-serif)', fontSize: 30, fontWeight: 400, color: 'var(--ya-warn)' }}>{analytics.worst_pose.avg_score.toFixed(1)}%</span>
+                                    </article>
                                 )}
                             </div>
+                        )}
 
-                            {/* Trophy footer */}
-                            {analytics.overall_avg_score >= 80 && (
-                                <div className="flex items-center justify-center gap-3 py-4">
-                                    <Trophy className="w-6 h-6 text-yellow-500" />
-                                    <span className="text-gray-600 font-medium">Great session! Keep it up.</span>
+                        {/* Pose breakdown */}
+                        <section style={{ background: 'var(--ya-paper-2)', border: '1px solid var(--ya-rule)', borderRadius: 18, padding: '24px 28px' }}>
+                            <h3 style={{ fontFamily: 'var(--ya-serif)', fontSize: 22, fontWeight: 400, margin: '0 0 16px', color: 'var(--ya-ink)' }}>Pose <em style={{ fontStyle: 'italic', color: 'var(--ya-brown-2)' }}>breakdown</em></h3>
+                            {analytics.poses.length === 0 ? (
+                                <p style={{ fontSize: 13, color: 'var(--ya-muted)', fontStyle: 'italic' }}>No pose data available.</p>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                                    {analytics.poses.map((pose, i) => (
+                                        <article key={i} style={{ background: 'var(--ya-paper-3)', border: '1px solid var(--ya-rule)', borderRadius: 14, padding: '16px 18px' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                                                <span style={{ fontFamily: 'var(--ya-serif)', fontSize: 18, fontWeight: 400, color: 'var(--ya-ink)' }}>{pose.label}</span>
+                                                <span style={{ fontFamily: 'var(--ya-serif)', fontSize: 22, fontWeight: 400, color: getScoreColor(pose.avg_score) }}>{pose.avg_score.toFixed(1)}%</span>
+                                            </div>
+                                            <div style={{ width: '100%', height: 6, background: 'rgba(196,182,147,0.35)', borderRadius: 99, overflow: 'hidden', marginBottom: 10 }}>
+                                                <div style={{ height: '100%', borderRadius: 99, background: getScoreBg(pose.avg_score), width: `${Math.min(pose.avg_score, 100)}%`, transition: 'width 0.7s ease-out' }} />
+                                            </div>
+                                            <div style={{ display: 'flex', gap: 18, fontSize: 11, color: 'var(--ya-muted)' }}>
+                                                <span>Max: <b style={{ color: 'var(--ya-ink-soft)', fontWeight: 600 }}>{pose.max_score.toFixed(1)}%</b></span>
+                                                <span>Min: <b style={{ color: 'var(--ya-ink-soft)', fontWeight: 600 }}>{pose.min_score.toFixed(1)}%</b></span>
+                                                <span>Frames: <b style={{ color: 'var(--ya-ink-soft)', fontWeight: 600 }}>{pose.total_frames}</b></span>
+                                            </div>
+                                            {/* Feedback tips */}
+                                            {pose.feedback && pose.feedback.length > 0 && (
+                                                <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--ya-rule)' }}>
+                                                    <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 5 }}>
+                                                        {pose.feedback.map((tip, tipIdx) => (
+                                                            <li key={tipIdx} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12 }}>
+                                                                <span style={{ width: 5, height: 5, borderRadius: '50%', marginTop: 5, flexShrink: 0, background: tip.startsWith('Great') ? 'var(--ya-ok)' : 'var(--ya-warn)' }} />
+                                                                <span style={{ color: 'var(--ya-ink-soft)' }}>{tip}</span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+                                        </article>
+                                    ))}
                                 </div>
                             )}
-                        </>
-                    )}
-                </div>
+                        </section>
+
+                        {/* Trophy footer */}
+                        {analytics.overall_avg_score >= 80 && (
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: 16 }}>
+                                <svg viewBox="0 0 24 24" style={{ width: 20, height: 20, stroke: 'var(--ya-gold)', fill: 'none', strokeWidth: 1.6, strokeLinecap: 'round', strokeLinejoin: 'round' }}><path d="M8 4h8v5a4 4 0 0 1-8 0V4z"/><path d="M8 6H5v2a3 3 0 0 0 3 3"/><path d="M16 6h3v2a3 3 0 0 1-3 3"/><path d="M10 13h4v3h-4z"/><path d="M8 20h8"/><path d="M12 16v4"/></svg>
+                                <span style={{ fontFamily: 'var(--ya-serif)', fontSize: 16, fontStyle: 'italic', color: 'var(--ya-ink-soft)' }}>Great session! Keep it up.</span>
+                            </div>
+                        )}
+                    </main>
+                )}
             </div>
         </div>
     );

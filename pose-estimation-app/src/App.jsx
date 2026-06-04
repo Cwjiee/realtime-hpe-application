@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import {
   HomePage, TrackingPage, SetPage, LoginPage, SignupPage,
   SessionHistoryPage, SessionDetailPage, LeaderboardPage, UploadVideoPage, BuildSetPage,
-  ProfilePage
+  ProfilePage, LandingPage
 } from './pages';
 import { useAuth } from './context/AuthContext';
 
 const YogaPoseTracker = () => {
   const { isAuthenticated, logout } = useAuth();
-  const [currentPage, setCurrentPage] = useState(isAuthenticated ? 'home' : 'login');
+  const [currentPage, setCurrentPage] = useState(isAuthenticated ? 'home' : 'landing');
   const [selectedSessionId, setSelectedSessionId] = useState(null);
 
   const handleHomeClick = () => setCurrentPage('home');
@@ -41,9 +41,12 @@ const YogaPoseTracker = () => {
   const renderPage = () => {
     if (!isAuthenticated) {
       if (currentPage === 'signup') {
-        return <SignupPage onSignup={handleSignup} onHaveAccount={handleHaveAccount} />;
+        return <SignupPage onSignup={handleSignup} onHaveAccount={handleHaveAccount} onBackToLanding={() => setCurrentPage('landing')} />;
       }
-      return <LoginPage onLogin={handleLogin} onNeedAccount={handleNeedAccount} />;
+      if (currentPage === 'login') {
+        return <LoginPage onLogin={handleLogin} onNeedAccount={handleNeedAccount} onBackToLanding={() => setCurrentPage('landing')} />;
+      }
+      return <LandingPage onLoginClick={() => setCurrentPage('login')} onSignupClick={() => setCurrentPage('signup')} />;
     }
 
     switch (currentPage) {

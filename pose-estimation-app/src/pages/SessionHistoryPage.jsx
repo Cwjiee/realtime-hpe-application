@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Header } from '../components';
-import { Calendar, Clock, Trophy, ChevronRight, Loader2, AlertCircle, CheckCircle2, Activity } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE } from '../config';
 
@@ -16,18 +14,6 @@ const formatTime = (isoString) => {
     return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 };
 
-const getScoreColor = (score) => {
-    if (score >= 80) return 'text-green-600';
-    if (score >= 50) return 'text-yellow-600';
-    return 'text-red-500';
-};
-
-const getTrophyColor = (score) => {
-    if (score >= 80) return 'text-yellow-500';
-    if (score >= 50) return 'text-purple-400';
-    return 'text-gray-400';
-};
-
 const SessionHistoryPage = ({ onHomeClick, onSessionSelect }) => {
     const { token } = useAuth();
     const [sessions, setSessions] = useState([]);
@@ -36,14 +22,9 @@ const SessionHistoryPage = ({ onHomeClick, onSessionSelect }) => {
 
     useEffect(() => {
         const fetchSessions = async () => {
-            setLoading(true);
-            setError(null);
+            setLoading(true); setError(null);
             try {
-                const res = await fetch(`${API_BASE}/api/sessions`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
+                const res = await fetch(`${API_BASE}/api/sessions`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (!res.ok) throw new Error(`Server error: ${res.status}`);
                 const data = await res.json();
                 setSessions(data.sessions);
@@ -56,125 +37,149 @@ const SessionHistoryPage = ({ onHomeClick, onSessionSelect }) => {
         fetchSessions();
     }, []);
 
-    return (
-        <div className="flex flex-col min-h-screen bg-gradient-to-br from-purple-100 via-white to-purple-200">
-            <Header onHomeClick={onHomeClick} />
+    const getScoreTag = (score) => {
+        if (score >= 80) return { bg: 'rgba(110,118,87,0.12)', color: 'var(--ya-ok)', text: 'Great' };
+        if (score >= 50) return { bg: 'rgba(168,120,46,0.10)', color: 'var(--ya-warn)', text: 'Good' };
+        return { bg: 'rgba(142,58,24,0.08)', color: 'var(--ya-fix)', text: 'Needs work' };
+    };
 
-            <div className="flex-1 container mx-auto px-4 py-8 max-w-4xl">
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Session History</h1>
-                    <p className="text-gray-600">Track your progress and review past sessions</p>
-                </div>
+    const avgScore = sessions.length > 0 
+        ? (sessions.reduce((acc, s) => acc + (s.overall_avg_score || 0), 0) / sessions.length).toFixed(1)
+        : 0;
+
+    const streak = React.useMemo(() => {
+        if (!sessions || sessions.length === 0) return 0;
+        const sorted = [...sessions].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        const dates = [...new Set(sorted.map(s => {
+            const d = new Date(s.created_at);
+            return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+        }))];
+        let currentStreak = 0;
+        const todayTime = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()).getTime();
+        if (dates[0] !== todayTime && dates[0] !== todayTime - 86400000) return 0;
+        let expectedDate = dates[0];
+        for (const time of dates) {
+            if (time === expectedDate) {
+                currentStreak++;
+                expectedDate -= 86400000;
+            } else {
+                break;
+            }
+        }
+        return currentStreak;
+    }, [sessions]);
+
+    return (
+        <div className="ya-page" style={{ overflow: 'hidden' }}>
+            <div className="ya-shell-flex">
+                {/* Top bar */}
+                <header style={{ display: 'flex', alignItems: 'center' }}>
+                    <button className="ya-home-link" onClick={onHomeClick}>
+                        <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>Home
+                    </button>
+                </header>
+
+                {/* Page head */}
+                <section className="ya-page-head" style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'end', gap: 24, paddingBottom: 18, borderBottom: '1px solid var(--ya-rule)' }}>
+                    <div>
+                        <h1 style={{ fontFamily: 'var(--ya-serif)', fontSize: 44, fontWeight: 400, letterSpacing: '-0.014em', lineHeight: 1.0, margin: '0 0 8px', color: 'var(--ya-ink)' }}>Session <em>history</em></h1>
+                        <p className="ya-sub" style={{ fontSize: 13, color: 'var(--ya-ink-soft)', margin: 0 }}>Track your progress and review past sessions.</p>
+                    </div>
+                    <div style={{ display: 'flex', gap: 10, alignSelf: 'end' }}>
+                        <div style={{ background: 'var(--ya-paper-2)', border: '1px solid var(--ya-rule)', borderRadius: 14, padding: '10px 16px', display: 'flex', flexDirection: 'column', gap: 2, minWidth: 110 }}>
+                            <span style={{ fontSize: 10, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--ya-muted)' }}>Total</span>
+                            <span style={{ fontFamily: 'var(--ya-serif)', fontSize: 22, fontWeight: 400, letterSpacing: '-0.005em', lineHeight: 1.1, color: 'var(--ya-ink)', fontVariantNumeric: 'tabular-nums' }}>
+                                {sessions.length} <em style={{ fontStyle: 'italic', color: 'var(--ya-brown-2)' }}>sessions</em>
+                            </span>
+                        </div>
+                        <div style={{ background: 'var(--ya-paper-2)', border: '1px solid var(--ya-rule)', borderRadius: 14, padding: '10px 16px', display: 'flex', flexDirection: 'column', gap: 2, minWidth: 110 }}>
+                            <span style={{ fontSize: 10, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--ya-muted)' }}>Avg score</span>
+                            <span style={{ fontFamily: 'var(--ya-serif)', fontSize: 22, fontWeight: 400, letterSpacing: '-0.005em', lineHeight: 1.1, color: 'var(--ya-ink)', fontVariantNumeric: 'tabular-nums' }}>
+                                {avgScore}%
+                            </span>
+                        </div>
+                        <div style={{ background: 'var(--ya-paper-2)', border: '1px solid var(--ya-rule)', borderRadius: 14, padding: '10px 16px', display: 'flex', flexDirection: 'column', gap: 2, minWidth: 110 }}>
+                            <span style={{ fontSize: 10, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--ya-muted)' }}>Streak</span>
+                            <span style={{ fontFamily: 'var(--ya-serif)', fontSize: 22, fontWeight: 400, letterSpacing: '-0.005em', lineHeight: 1.1, color: 'var(--ya-ink)', fontVariantNumeric: 'tabular-nums' }}>
+                                {streak} <em style={{ fontStyle: 'italic', color: 'var(--ya-brown-2)' }}>days</em>
+                            </span>
+                        </div>
+                    </div>
+                </section>
 
                 {/* Loading */}
                 {loading && (
-                    <div className="flex flex-col items-center justify-center py-20 gap-4">
-                        <Loader2 className="w-10 h-10 text-purple-500 animate-spin" />
-                        <p className="text-gray-500 font-medium">Loading your sessions...</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: 12 }}>
+                        <div style={{ width: 32, height: 32, border: '3px solid var(--ya-rule)', borderTopColor: 'var(--ya-forest)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                        <p style={{ color: 'var(--ya-muted)', fontSize: 14 }}>Loading sessions...</p>
+                        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
                     </div>
                 )}
 
                 {/* Error */}
-                {error && !loading && (
-                    <div className="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 rounded-2xl p-5">
-                        <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
-                        <p>{error}</p>
-                    </div>
-                )}
+                {error && !loading && <div className="ya-auth-error">{error}</div>}
 
-                {/* Empty State */}
+                {/* Empty */}
                 {!loading && !error && sessions.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-                        <Activity className="w-14 h-14 text-purple-200" />
-                        <h2 className="text-xl font-semibold text-gray-700">No sessions yet</h2>
-                        <p className="text-gray-500">Complete a Pose Set to see your history here.</p>
-                        <button
-                            onClick={onHomeClick}
-                            className="mt-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 px-6 rounded-xl transition-all duration-200 shadow"
-                        >
-                            Start a Session
-                        </button>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: 12, textAlign: 'center' }}>
+                        <p style={{ fontFamily: 'var(--ya-serif)', fontSize: 22, color: 'var(--ya-ink)' }}>No sessions yet</p>
+                        <p style={{ color: 'var(--ya-muted)', fontSize: 14 }}>Complete a Pose Set to see your history here.</p>
+                        <button onClick={onHomeClick} className="ya-auth-btn" style={{ width: 'auto', padding: '12px 28px', fontSize: 13 }}>Start a Session</button>
                     </div>
                 )}
 
-                {/* Sessions List */}
+                {/* List */}
                 {!loading && !error && sessions.length > 0 && (
-                    <div className="space-y-4">
-                        {sessions.map((session) => (
-                            <div
-                                key={session.session_id}
-                                onClick={() => onSessionSelect?.(session.session_id)}
-                                className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-white/50 hover:shadow-md hover:scale-[1.01] transition-all duration-200 group cursor-pointer"
-                            >
-                                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-
-                                    {/* Left: Info */}
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            {/* Status badge */}
-                                            {session.status === 'completed' ? (
-                                                <span className="flex items-center gap-1 bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wide">
-                                                    <CheckCircle2 className="w-3 h-3" /> Completed
-                                                </span>
-                                            ) : (
-                                                <span className="flex items-center gap-1 bg-yellow-100 text-yellow-700 text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wide">
-                                                    <Activity className="w-3 h-3" /> In Progress
-                                                </span>
-                                            )}
-                                            <span className="text-gray-400 text-sm flex items-center gap-1">
-                                                <Calendar className="w-3 h-3" /> {formatDate(session.created_at)}
+                    <section style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, padding: '2px 4px 16px 2px' }}>
+                        {sessions.map((session) => {
+                            const scoreTag = getScoreTag(session.overall_avg_score);
+                            return (
+                                <article
+                                    key={session.session_id}
+                                    onClick={() => onSessionSelect?.(session.session_id)}
+                                    style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', alignItems: 'center', gap: 18, background: 'var(--ya-paper-2)', border: '1px solid var(--ya-rule)', borderRadius: 16, padding: '18px 20px', cursor: 'pointer', transition: 'transform .2s, box-shadow .2s, border-color .2s' }}
+                                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.borderColor = 'var(--ya-camel)'; e.currentTarget.style.boxShadow = '0 12px 30px -22px rgba(47,55,39,0.25)'; }}
+                                    onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = 'var(--ya-rule)'; e.currentTarget.style.boxShadow = 'none'; }}
+                                >
+                                    {/* Info */}
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                                            <span style={{ fontFamily: 'var(--ya-serif)', fontSize: 12, fontStyle: 'italic', letterSpacing: '0.03em', padding: '3px 10px', borderRadius: 999, background: session.status === 'completed' ? 'rgba(110,118,87,0.12)' : 'rgba(168,120,46,0.12)', color: session.status === 'completed' ? 'var(--ya-ok)' : 'var(--ya-warn)' }}>
+                                                {session.status === 'completed' ? 'Completed' : 'In Progress'}
                                             </span>
+                                            <span style={{ fontSize: 11, color: 'var(--ya-muted)', display: 'flex', alignItems: 'center', gap: 5 }}>
+                                                <svg viewBox="0 0 24 24" style={{ width: 12, height: 12, stroke: 'currentColor', fill: 'none', strokeWidth: 1.6, strokeLinecap: 'round' }}><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                                                {formatDate(session.created_at)}
+                                            </span>
+                                            <span style={{ fontSize: 11, color: 'var(--ya-muted)', display: 'flex', alignItems: 'center', gap: 5 }}>
+                                                <svg viewBox="0 0 24 24" style={{ width: 12, height: 12, stroke: 'currentColor', fill: 'none', strokeWidth: 1.6, strokeLinecap: 'round' }}><circle cx="12" cy="12" r="9"/><path d="M12 7v5l2.5 2.5"/></svg>
+                                                {formatTime(session.created_at)}
+                                            </span>
+                                            <span style={{ fontSize: 11, color: 'var(--ya-muted)' }}>{session.total_poses} poses</span>
                                         </div>
-
-                                        <div className="flex items-center gap-6 text-sm text-gray-600 mb-3">
-                                            <div className="flex items-center gap-1.5">
-                                                <Clock className="w-4 h-4 text-purple-400" />
-                                                <span>{formatTime(session.created_at)}</span>
-                                            </div>
-                                            <div className="text-gray-400">
-                                                {session.total_poses} pose{session.total_poses !== 1 ? 's' : ''}
-                                            </div>
-                                        </div>
-
-                                        {/* Pose tags */}
-                                        <div className="flex flex-wrap gap-2">
-                                            {session.poses.length > 0 ? (
-                                                session.poses.map((pose, index) => (
-                                                    <span
-                                                        key={index}
-                                                        className="px-2 py-0.5 bg-purple-50 text-purple-700 border border-purple-100 rounded text-xs font-medium"
-                                                    >
-                                                        {pose}
-                                                    </span>
-                                                ))
-                                            ) : (
-                                                <span className="text-gray-400 text-xs italic">No poses recorded</span>
-                                            )}
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                                            {session.poses.length > 0 ? session.poses.map((p, i) => (
+                                                <span key={i} style={{ fontSize: 11, fontWeight: 500, color: 'var(--ya-forest)', background: 'rgba(110,118,87,0.13)', border: '1px solid rgba(110,118,87,0.2)', padding: '3px 9px', borderRadius: 999 }}>{p}</span>
+                                            )) : <span style={{ fontSize: 11, color: 'var(--ya-muted)', fontStyle: 'italic' }}>No poses recorded</span>}
                                         </div>
                                     </div>
 
-                                    {/* Right: Score */}
-                                    <div className="flex items-center w-full md:w-auto justify-between md:justify-end gap-6">
-                                        <div className="text-right">
-                                            <div className="text-sm text-gray-500 mb-1">Avg Score</div>
-                                            <div className="flex items-center gap-2">
-                                                <span className={`text-2xl font-bold ${getScoreColor(session.overall_avg_score)}`}>
-                                                    {session.total_poses > 0 ? `${session.overall_avg_score}%` : '—'}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        <div className="opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-[-10px] group-hover:translate-x-0 duration-200">
-                                            <div className="bg-white p-2 rounded-full shadow-sm text-purple-600">
-                                                <ChevronRight className="w-5 h-5" />
-                                            </div>
-                                        </div>
+                                    {/* Score */}
+                                    <div style={{ textAlign: 'right' }}>
+                                        <div style={{ fontSize: 10, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--ya-muted)', marginBottom: 4 }}>Score</div>
+                                        <span style={{ fontFamily: 'var(--ya-serif)', fontSize: 28, fontWeight: 400, color: 'var(--ya-ink)', fontVariantNumeric: 'tabular-nums' }}>
+                                            {session.total_poses > 0 ? `${session.overall_avg_score}%` : '—'}
+                                        </span>
                                     </div>
 
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                                    {/* Chevron */}
+                                    <span style={{ width: 28, height: 28, borderRadius: '50%', display: 'grid', placeItems: 'center', color: 'var(--ya-muted)' }}>
+                                        <svg viewBox="0 0 24 24" style={{ width: 14, height: 14, stroke: 'currentColor', fill: 'none', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' }}><path d="M9 6l6 6-6 6"/></svg>
+                                    </span>
+                                </article>
+                            );
+                        })}
+                    </section>
                 )}
             </div>
         </div>
