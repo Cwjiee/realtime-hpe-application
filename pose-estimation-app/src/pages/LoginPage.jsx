@@ -13,6 +13,12 @@ const LoginPage = ({ onLogin, onNeedAccount, onBackToLanding }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(null);
+
+        if (!email.trim() || !password.trim()) {
+            setError("All fields are required");
+            return;
+        }
+
         setLoading(true);
 
         try {

@@ -102,6 +102,11 @@ def get_poses():
 
 @app.post("/api/auth/signup", response_model=Token)
 async def signup(user: UserCreate):
+    if not user.name.strip() or not user.email.strip() or not user.password.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="All fields are required and must not be empty"
+        )
     existing_user = await users_collection.find_one({"email": user.email})
     if existing_user:
         raise HTTPException(
@@ -122,6 +127,11 @@ async def signup(user: UserCreate):
 
 @app.post("/api/auth/login", response_model=Token)
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    if not form_data.username.strip() or not form_data.password.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email and password are required"
+        )
     user = await users_collection.find_one({"email": form_data.username})
     if not user or not verify_password(form_data.password, user["hashed_password"]):
         raise HTTPException(

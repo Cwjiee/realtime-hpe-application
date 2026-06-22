@@ -15,6 +15,11 @@ const SignupPage = ({ onSignup, onHaveAccount, onBackToLanding }) => {
         e.preventDefault();
         setError(null);
 
+        if (!name.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
+            setError("All fields are required");
+            return;
+        }
+
         if (password !== confirmPassword) {
             setError("Passwords do not match");
             return;
