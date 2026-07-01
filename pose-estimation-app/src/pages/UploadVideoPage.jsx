@@ -248,6 +248,47 @@ const UploadVideoPage = ({ onHomeClick }) => {
                                 </div>
                                 <ScoreChart scores={results.scores} fps={results.fps} />
                             </div>
+
+                            {/* Snapshots Comparison */}
+                            {(results.best_frame_b64 || results.worst_frame_b64) && (
+                                <div style={{ background: 'var(--ya-paper-2)', border: '1px solid var(--ya-rule)', borderRadius: 18, padding: '24px 28px' }}>
+                                    <h3 style={{ fontFamily: 'var(--ya-serif)', fontSize: 22, fontWeight: 400, margin: '0 0 20px', color: 'var(--ya-ink)' }}>
+                                        Accuracy <em style={{ fontStyle: 'italic', color: 'var(--ya-brown-2)' }}>Snapshots</em>
+                                    </h3>
+                                    <p style={{ fontSize: 14, color: 'var(--ya-ink-soft)', marginBottom: 20 }}>
+                                        Here are the highest and lowest scoring frames from your video compared with the professional reference. You can right-click to save or copy these images for your report.
+                                    </p>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 20 }}>
+                                        {/* Professional Reference */}
+                                        {selectedPose && POSE_OUTLINE_MAP[selectedPose] && (
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                                                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ya-ink)' }}>Professional Reference</div>
+                                                <div style={{ background: 'var(--ya-paper-3)', borderRadius: 12, padding: 10, border: '1px solid var(--ya-rule)', display: 'flex', justifyContent: 'center', height: '100%' }}>
+                                                    <img src={POSE_OUTLINE_MAP[selectedPose]} alt="Reference" style={{ maxWidth: '100%', maxHeight: 300, objectFit: 'contain', borderRadius: 8 }} />
+                                                </div>
+                                            </div>
+                                        )}
+                                        {/* High Accuracy Frame */}
+                                        {results.best_frame_b64 && (
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                                                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ya-ok)' }}>Highest Accuracy ({results.max_score.toFixed(1)}/100)</div>
+                                                <div style={{ background: 'var(--ya-paper-3)', borderRadius: 12, padding: 10, border: '1px solid var(--ya-rule)' }}>
+                                                    <img src={`data:image/jpeg;base64,${results.best_frame_b64}`} alt="Best Frame" style={{ width: '100%', borderRadius: 8 }} />
+                                                </div>
+                                            </div>
+                                        )}
+                                        {/* Low Accuracy Frame */}
+                                        {results.worst_frame_b64 && (
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                                                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ya-warn)' }}>Lowest Accuracy ({results.min_score.toFixed(1)}/100)</div>
+                                                <div style={{ background: 'var(--ya-paper-3)', borderRadius: 12, padding: 10, border: '1px solid var(--ya-rule)' }}>
+                                                    <img src={`data:image/jpeg;base64,${results.worst_frame_b64}`} alt="Worst Frame" style={{ width: '100%', borderRadius: 8 }} />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
