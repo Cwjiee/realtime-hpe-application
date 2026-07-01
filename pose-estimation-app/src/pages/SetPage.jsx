@@ -49,8 +49,8 @@ const SetPage = ({ onHomeClick }) => {
     const animationFrameRef = useRef(null);
     const lastVideoTimeRef = useRef(-1);
 
-    const [visualGuidanceEnabled, setVisualGuidanceEnabled] = useState(false);
-    const [visualOutlineEnabled, setVisualOutlineEnabled] = useState(false);
+    const [visualGuidanceEnabled, setVisualGuidanceEnabled] = useState(true);
+    const [visualOutlineEnabled, setVisualOutlineEnabled] = useState(true);
     const [currentPoseIndex, setCurrentPoseIndex] = useState(0);
     const [completedPoses, setCompletedPoses] = useState([]);
 
