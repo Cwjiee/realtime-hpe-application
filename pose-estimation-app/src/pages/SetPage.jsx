@@ -515,7 +515,7 @@ const SetPage = ({ onHomeClick }) => {
 
     return (
         <div className="ya-page" style={{ overflow: 'hidden' }}>
-            <div className="ya-shell-flex">
+            <div className="ya-shell-flex ya-sp-shell">
                 {/* TOP BAR */}
                 <header className="ya-sp-topbar">
                     <button className="ya-home-link" onClick={onHomeClick}>

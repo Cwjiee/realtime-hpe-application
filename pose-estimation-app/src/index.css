@@ -193,6 +193,11 @@
   height: 100vh;
 }
 
+.ya-sp-shell {
+  max-width: 96%;
+  padding: 16px 8px 20px;
+}
+
 /* Top bar / nav */
 .ya-topbar {
   display: flex;
@@ -989,8 +994,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 12px 16px;
+  gap: 4px;
+  padding: 4px 8px;
   background: var(--ya-paper-2);
   border: 1px solid var(--ya-rule);
   border-radius: 999px;
@@ -1003,8 +1008,8 @@
 .ya-seq-step {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 14px;
+  gap: 6px;
+  padding: 4px 10px;
   border-radius: 999px;
   font-size: 13px;
   color: var(--ya-ink-soft);
