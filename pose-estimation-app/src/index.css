@@ -1011,13 +1011,10 @@
   transition: background .2s, color .2s;
 }
 
-.ya-seq-step.active {
+.ya-seq-step.active,
+.ya-seq-step.done {
   background: var(--ya-forest);
   color: var(--ya-paper-2);
-}
-
-.ya-seq-step.done {
-  color: var(--ya-olive);
 }
 
 .ya-seq-step .num {
@@ -1356,9 +1353,13 @@
   background: var(--ya-forest);
   color: var(--ya-paper-2);
   border-radius: 14px;
-  padding: 12px 16px;
+  padding: 18px 20px;
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 70px;
 }
 
 .ya-sp-target::after {
