@@ -181,6 +181,36 @@ async def analyze_video(
 
         scores_list = [float(s) for s in scores]
 
+        # Extract best and worst frames for visual comparison
+        best_frame_b64 = None
+        worst_frame_b64 = None
+        
+        if scores_list:
+            import cv2
+            import base64
+            
+            best_idx = int(np.argmax(scores_list))
+            worst_idx = int(np.argmin(scores_list))
+            
+            cap = cv2.VideoCapture(tmp_path)
+            current_frame = 0
+            while cap.isOpened():
+                ret, frame = cap.read()
+                if not ret:
+                    break
+                if current_frame == best_idx or current_frame == worst_idx:
+                    _, buffer = cv2.imencode('.jpg', frame)
+                    b64_str = base64.b64encode(buffer).decode('utf-8')
+                    if current_frame == best_idx:
+                        best_frame_b64 = b64_str
+                    if current_frame == worst_idx:
+                        worst_frame_b64 = b64_str
+                
+                if best_frame_b64 and worst_frame_b64:
+                    break
+                current_frame += 1
+            cap.release()
+
         return {
             "scores": scores_list,
             "fps": float(fps),
@@ -188,6 +218,8 @@ async def analyze_video(
             "avg_score": float(np.mean(scores_list)) if scores_list else 0.0,
             "max_score": float(np.max(scores_list)) if scores_list else 0.0,
             "min_score": float(np.min(scores_list)) if scores_list else 0.0,
+            "best_frame_b64": best_frame_b64,
+            "worst_frame_b64": worst_frame_b64,
         }
     finally:
         try:
