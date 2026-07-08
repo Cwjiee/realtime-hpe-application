@@ -9,8 +9,8 @@ import mountainPose from '../assets/mountain.png';
 import plankPose from '../assets/plank.jpg';
 import treePose from '../assets/tree.jpg';
 import trianglePose from '../assets/triangle.jpg';
-import warrior1Pose from '../assets/warrior1.png';
-import warrior2Pose from '../assets/warrior2.png';
+const warrior1Pose = '/yoga_outline/warrior1.png';
+const warrior2Pose = '/yoga_outline/warrior2.png';
 import { API_BASE } from '../config';
 
 // Pose set sequence
@@ -69,6 +69,8 @@ const SetPage = ({ onHomeClick }) => {
     const [countdown, setCountdown] = useState(5);
     const [trackingTimeLeft, setTrackingTimeLeft] = useState(5);
     const [collectedFrames, setCollectedFrames] = useState([]);
+    const [trackingProgress, setTrackingProgress] = useState(0);
+    const trackingStartTimeRef = useRef(null);
     const collectedFramesRef = useRef([]);
     const [poseResults, setPoseResults] = useState(null);
     const [error, setError] = useState(null);
@@ -169,6 +171,8 @@ const SetPage = ({ onHomeClick }) => {
             // Countdown finished → start tracking
             setPhase(PHASE.TRACKING);
             setTrackingTimeLeft(5);
+            trackingStartTimeRef.current = Date.now();
+            setTrackingProgress(0);
             collectedFramesRef.current = [];
             setCollectedFrames([]);
             return;
@@ -352,6 +356,11 @@ const SetPage = ({ onHomeClick }) => {
 
                     collectedFramesRef.current.push(frameData);
                     setCollectedFrames([...collectedFramesRef.current]);
+
+                    if (trackingStartTimeRef.current) {
+                        const elapsed = Date.now() - trackingStartTimeRef.current;
+                        setTrackingProgress(Math.min(elapsed / 5000, 1));
+                    }
                 }
             }
         }
@@ -655,7 +664,7 @@ const SetPage = ({ onHomeClick }) => {
                                 <>
                                     <div className="ya-frames-bar">
                                         {Array.from({ length: 30 }).map((_, i) => (
-                                            <span key={i} className={`ya-seg ${i < collectedFrames.length ? 'done' : ''}`} />
+                                            <span key={i} className={`ya-seg ${i / 30 < trackingProgress ? 'done' : ''}`} />
                                         ))}
                                     </div>
                                     <div className="ya-frames-foot">

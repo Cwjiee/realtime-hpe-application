@@ -6,3 +6,4 @@ archive/
 .env
 AGENTS.md
 docs/
+*.pdf
