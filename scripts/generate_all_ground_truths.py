@@ -75,14 +75,21 @@ def process_pose_folder(folder_path, pose_name):
             # UN-NORMALIZE COORDINATES (Multiply by width/height to fix aspect ratio distortion)
             def get_xy(idx): return [lm[idx].x * width, lm[idx].y * height]
 
+            lk = calculate_angle(get_xy(23), get_xy(25), get_xy(27))
+            rk = calculate_angle(get_xy(24), get_xy(26), get_xy(28))
+            
+            # For Tree Pose (Vrksasana), filter to standard left-leg standing pose (left knee straight, right knee bent)
+            if pose_name == "Vrksasana" and not (lk >= 160 and rk < 160):
+                continue
+
             joint_data["left_elbow"].append(calculate_angle(get_xy(11), get_xy(13), get_xy(15)))
             joint_data["right_elbow"].append(calculate_angle(get_xy(12), get_xy(14), get_xy(16)))
             joint_data["left_shoulder"].append(calculate_angle(get_xy(13), get_xy(11), get_xy(23)))
             joint_data["right_shoulder"].append(calculate_angle(get_xy(14), get_xy(12), get_xy(24)))
             joint_data["left_hip"].append(calculate_angle(get_xy(11), get_xy(23), get_xy(25)))
             joint_data["right_hip"].append(calculate_angle(get_xy(12), get_xy(24), get_xy(26)))
-            joint_data["left_knee"].append(calculate_angle(get_xy(23), get_xy(25), get_xy(27)))
-            joint_data["right_knee"].append(calculate_angle(get_xy(24), get_xy(26), get_xy(28)))
+            joint_data["left_knee"].append(lk)
+            joint_data["right_knee"].append(rk)
 
     averaged_pose = {}
     for joint, values in joint_data.items():
