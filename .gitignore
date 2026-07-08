@@ -5,3 +5,4 @@ archive/
 *.csv
 .env
 AGENTS.md
+docs/
