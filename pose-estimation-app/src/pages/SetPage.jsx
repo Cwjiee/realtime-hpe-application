@@ -703,18 +703,6 @@ const SetPage = ({ onHomeClick }) => {
                         {/* Error */}
                         {error && <div className="ya-auth-error">{error}</div>}
 
-                        {/* Toggles */}
-                        <div className="ya-toggle-card">
-                            <div className="ya-toggle-row">
-                                <div className="ya-t-text"><span className="ya-t-title">Visual guidance</span><span className="ya-t-hint">On-screen alignment cues</span></div>
-                                <label className="ya-switch"><input type="checkbox" checked={visualGuidanceEnabled} onChange={e => setVisualGuidanceEnabled(e.target.checked)} /><span className="ya-slider" /></label>
-                            </div>
-                            <div className="ya-toggle-row">
-                                <div className="ya-t-text"><span className="ya-t-title">Visual outline</span><span className="ya-t-hint">Overlay pose silhouette</span></div>
-                                <label className="ya-switch"><input type="checkbox" checked={visualOutlineEnabled} onChange={e => setVisualOutlineEnabled(e.target.checked)} /><span className="ya-slider" /></label>
-                            </div>
-                        </div>
-
                         {/* Joint Guidance */}
                         {visualGuidanceEnabled && liveGuidance && (phase === PHASE.TRACKING || phase === PHASE.COUNTDOWN) && (
                             <div className="ya-joints">
@@ -770,6 +758,18 @@ const SetPage = ({ onHomeClick }) => {
                                 </div>
                             </div>
                         )}
+
+                        {/* Toggles */}
+                        <div className="ya-toggle-card">
+                            <div className="ya-toggle-row">
+                                <div className="ya-t-text"><span className="ya-t-title">Visual guidance</span><span className="ya-t-hint">On-screen alignment cues</span></div>
+                                <label className="ya-switch"><input type="checkbox" checked={visualGuidanceEnabled} onChange={e => setVisualGuidanceEnabled(e.target.checked)} /><span className="ya-slider" /></label>
+                            </div>
+                            <div className="ya-toggle-row">
+                                <div className="ya-t-text"><span className="ya-t-title">Visual outline</span><span className="ya-t-hint">Overlay pose silhouette</span></div>
+                                <label className="ya-switch"><input type="checkbox" checked={visualOutlineEnabled} onChange={e => setVisualOutlineEnabled(e.target.checked)} /><span className="ya-slider" /></label>
+                            </div>
+                        </div>
 
                         {/* Actions */}
                         {phase === PHASE.RESULTS && (
