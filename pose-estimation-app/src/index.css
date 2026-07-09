@@ -1571,15 +1571,12 @@
 
 /* Joint guidance */
 .ya-joints {
-  flex: 1;
-  min-height: 0;
   background: var(--ya-paper-2);
   border: 1px solid var(--ya-rule);
   border-radius: 14px;
   padding: 14px 16px 12px;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
 .ya-joints-head {
@@ -1612,8 +1609,6 @@
   list-style: none;
   padding: 0;
   margin: 0;
-  flex: 1;
-  min-height: 0;
   display: flex;
   flex-direction: column;
 }
