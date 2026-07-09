@@ -2023,3 +2023,107 @@
   border-radius: 50%;
   animation: ya-spin 0.8s linear infinite;
 }
+
+/* Flow Mode Selection */
+.ya-mode-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 8px 16px;
+}
+
+.ya-mode-head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 24px;
+}
+
+.ya-mode-head h1 {
+  font-family: var(--ya-serif);
+  font-size: 28px;
+  font-weight: 400;
+  color: var(--ya-ink);
+  margin: 0;
+}
+
+.ya-mode-head h1 em {
+  font-style: italic;
+  color: var(--ya-brown-2);
+}
+
+.ya-mode-head p {
+  color: var(--ya-muted);
+  font-size: 14px;
+  margin: 0;
+}
+
+.ya-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  min-height: 0;
+}
+
+.ya-mode-card {
+  position: relative;
+  background: var(--ya-paper-2);
+  border: 2px solid var(--ya-rule);
+  border-radius: 20px;
+  padding: 32px 24px;
+  cursor: pointer;
+  transition: transform 0.25s, border-color 0.25s, background 0.25s, box-shadow 0.25s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+}
+
+.ya-mode-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--ya-camel);
+  box-shadow: 0 8px 24px rgba(74, 69, 54, 0.08);
+}
+
+.ya-mode-icon-wrapper {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(110, 118, 87, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ya-olive);
+  transition: background 0.25s, color 0.25s;
+}
+
+.ya-mode-card:hover .ya-mode-icon-wrapper {
+  background: var(--ya-olive);
+  color: var(--ya-paper-2);
+}
+
+.ya-mode-card h3 {
+  font-family: var(--ya-serif);
+  font-size: 20px;
+  margin: 0;
+  color: var(--ya-ink);
+}
+
+.ya-mode-card p {
+  font-size: 13px;
+  color: var(--ya-ink-soft);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.ya-mode-card .ya-badge {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(168, 136, 96, 0.12);
+  color: var(--ya-camel);
+}

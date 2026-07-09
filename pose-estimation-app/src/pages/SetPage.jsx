@@ -31,6 +31,7 @@ const POSE_INFO = {
 // Phase constants
 const PHASE = {
     LOADING: 'loading',       // Model is loading
+    SELECT_MODE: 'select_mode', // Choose nonstop vs pause in-between
     SELECT_SET: 'select_set', // Selecting sequence
     READY: 'ready',           // Ready to start tracking
     COUNTDOWN: 'countdown',   // 5-second countdown before tracking
@@ -58,6 +59,8 @@ const SetPage = ({ onHomeClick }) => {
     const [customSets, setCustomSets] = useState([]);
     const [fetchingSets, setFetchingSets] = useState(false);
     const [activeSequence, setActiveSequence] = useState(poseSequence);
+    const [flowMode, setFlowMode] = useState(null); // 'nonstop' | 'pause'
+    const [autoAdvanceSeconds, setAutoAdvanceSeconds] = useState(4);
 
     // Session state
     const [sessionId, setSessionId] = useState(null);
@@ -144,10 +147,10 @@ const SetPage = ({ onHomeClick }) => {
         }
     };
 
-    // Set phase to select_set once model is loaded
+    // Set phase to select_mode once model is loaded
     useEffect(() => {
         if (poseLandmarker && phase === PHASE.LOADING) {
-            setPhase(PHASE.SELECT_SET);
+            setPhase(PHASE.SELECT_MODE);
         }
     }, [poseLandmarker, phase]);
 
@@ -294,6 +297,25 @@ const SetPage = ({ onHomeClick }) => {
         setCountdown(5);
     };
 
+    // Auto-advance in nonstop mode
+    useEffect(() => {
+        if (phase !== PHASE.RESULTS || flowMode !== 'nonstop' || error) return;
+
+        setAutoAdvanceSeconds(4);
+        let secondsLeft = 4;
+
+        const timer = setInterval(() => {
+            secondsLeft -= 1;
+            setAutoAdvanceSeconds(secondsLeft);
+            if (secondsLeft <= 0) {
+                clearInterval(timer);
+                handleNextPose();
+            }
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [phase, flowMode, error, currentPoseIndex]);
+
     // Render loop for pose detection & frame collection
     const renderLoop = useCallback(() => {
         if (!poseLandmarker || !webcamRef.current?.video || !canvasRef.current) {
@@ -394,8 +416,8 @@ const SetPage = ({ onHomeClick }) => {
         };
     }, [phase, poseLandmarker, renderLoop]);
 
-    // Camera should be on for all phases except loading and select_set
-    const cameraOn = phase !== PHASE.LOADING && phase !== PHASE.SELECT_SET;
+    // Camera should be on for all phases except loading, select_mode, and select_set
+    const cameraOn = phase !== PHASE.LOADING && phase !== PHASE.SELECT_SET && phase !== PHASE.SELECT_MODE;
     const isSetComplete = phase === PHASE.COMPLETE;
 
     const getScoreColor = (s) => s >= 80 ? 'var(--ya-ok)' : s >= 50 ? 'var(--ya-warn)' : 'var(--ya-fix)';
@@ -530,7 +552,10 @@ const SetPage = ({ onHomeClick }) => {
                     <button className="ya-home-link" onClick={onHomeClick}>
                         <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" /></svg>Home
                     </button>
-                    <h2 className="ya-page-title">Yoga Pose <em>Set</em></h2>
+                    <h2 className="ya-page-title">
+                        Yoga Pose <em>Set</em>
+                        {flowMode && <span className="ya-mode-tag" style={{ marginLeft: 12, fontSize: 11, background: 'rgba(168, 136, 96, 0.12)', color: 'var(--ya-camel)', padding: '2px 8px', borderRadius: 999, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>{flowMode === 'nonstop' ? 'Nonstop' : 'Self-Paced'}</span>}
+                    </h2>
                     <div className="ya-right-meta">
                         {cameraOn && <span className="ya-live"><span className="ya-dot-pulse" />Live</span>}
                         {!cameraOn && <span>{activeSequence.length} poses</span>}
@@ -541,7 +566,7 @@ const SetPage = ({ onHomeClick }) => {
                 <div className="ya-sequence">
                     {activeSequence.map((poseItem, index) => (
                         <React.Fragment key={index}>
-                            <span className={`ya-seq-step ${index === currentPoseIndex && phase !== PHASE.SELECT_SET ? 'active' : ''} ${completedPoses.includes(index) ? 'done' : ''}`}>
+                            <span className={`ya-seq-step ${index === currentPoseIndex && phase !== PHASE.SELECT_SET && phase !== PHASE.SELECT_MODE ? 'active' : ''} ${completedPoses.includes(index) ? 'done' : ''}`}>
                                 <span className="num">{String(index + 1).padStart(2, '0')}</span>
                                 {completedPoses.includes(index) && '✓ '}{poseItem.label}
                             </span>
@@ -554,8 +579,40 @@ const SetPage = ({ onHomeClick }) => {
 
                 {/* MAIN LAYOUT */}
                 <main className="ya-sp-layout">
-                    {/* LEFT — viewer / routine select */}
-                    {phase === PHASE.SELECT_SET ? (
+                    {/* LEFT — viewer / mode select / routine select */}
+                    {phase === PHASE.SELECT_MODE ? (
+                        <section className="ya-mode-container">
+                            <div className="ya-mode-head">
+                                <h1>Choose your <em>flow</em></h1>
+                                <p>Select how you want to navigate through the poses.</p>
+                            </div>
+                            <div className="ya-mode-grid">
+                                <article className="ya-mode-card" onClick={() => { setFlowMode('nonstop'); setPhase(PHASE.SELECT_SET); }}>
+                                    <div className="ya-mode-icon-wrapper">
+                                        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                                            <polygon points="14 4 24 12 14 20 14 4"></polygon>
+                                        </svg>
+                                    </div>
+                                    <span className="ya-badge">Continuous</span>
+                                    <h3>Nonstop Flow</h3>
+                                    <p>Automatically transition to the next pose after completion. Best for a seamless, meditative session.</p>
+                                </article>
+
+                                <article className="ya-mode-card" onClick={() => { setFlowMode('pause'); setPhase(PHASE.SELECT_SET); }}>
+                                    <div className="ya-mode-icon-wrapper">
+                                        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <rect x="14" y="4" width="4" height="16" rx="1"></rect>
+                                            <rect x="6" y="4" width="4" height="16" rx="1"></rect>
+                                        </svg>
+                                    </div>
+                                    <span className="ya-badge">Self-Paced</span>
+                                    <h3>Pause in-between</h3>
+                                    <p>Review your score and alignment feedback for each pose. Manually tap to continue when ready.</p>
+                                </article>
+                            </div>
+                        </section>
+                    ) : phase === PHASE.SELECT_SET ? (
                         <section style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
                             <div className="ya-routines-head">
                                 <h1>Choose your <em>routine</em></h1>
@@ -742,7 +799,7 @@ const SetPage = ({ onHomeClick }) => {
                             </div>
                             <div className="ya-bar">
                                 {activeSequence.map((_, index) => (
-                                    <span key={index} className={`ya-seg ${completedPoses.includes(index) ? 'done' : index === currentPoseIndex && phase !== PHASE.SELECT_SET ? 'active' : ''}`} />
+                                    <span key={index} className={`ya-seg ${completedPoses.includes(index) ? 'done' : index === currentPoseIndex && phase !== PHASE.SELECT_SET && phase !== PHASE.SELECT_MODE ? 'active' : ''}`} />
                                 ))}
                             </div>
                         </div>
@@ -776,7 +833,9 @@ const SetPage = ({ onHomeClick }) => {
                             <div className="ya-sp-actions">
                                 <button className="ya-btn-retry" onClick={handleRetry}>Retry</button>
                                 <button className="ya-btn-next" onClick={handleNextPose}>
-                                    {currentPoseIndex < activeSequence.length - 1 ? 'Next Pose' : 'Finish'}
+                                    {currentPoseIndex < activeSequence.length - 1 
+                                        ? (flowMode === 'nonstop' ? `Next Pose (${autoAdvanceSeconds}s)` : 'Next Pose') 
+                                        : (flowMode === 'nonstop' ? `Finish (${autoAdvanceSeconds}s)` : 'Finish')}
                                     <svg viewBox="0 0 24 24"><path d="M5 12h14" /><path d="M13 5l7 7-7 7" /></svg>
                                 </button>
                             </div>
